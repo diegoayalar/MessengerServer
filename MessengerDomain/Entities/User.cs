@@ -1,11 +1,4 @@
-﻿
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MessengerEntity.Entity
+﻿namespace MessengerDomain.Entities
 {
     public class User
     {
@@ -15,7 +8,7 @@ namespace MessengerEntity.Entity
 
         public ICollection<string>? Chats { get; set; }
 
-        public string? Phone {  get; set; }
+        public string? Phone { get; set; }
 
         public DateTime? DateCreated { get; set; }
 
