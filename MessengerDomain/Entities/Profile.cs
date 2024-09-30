@@ -1,11 +1,21 @@
-﻿namespace MessengerDomain.Entities
+﻿
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace MessengerEntity.Entity
 {
     public class Profile
     {
-        public int Id { get; set; }
-        public required string Name { get; set; }
+        public required string Name {  get; set; }
+
         public string? Description { get; set; }
-        public required int Status { get; set; }
-        public int ProfilePicURL { get; set; }
+
+        public string? ProfilePic {  get; set; }
+
+        public int Status {  get; set; }    
+
     }
 }
