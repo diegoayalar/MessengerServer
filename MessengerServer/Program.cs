@@ -22,9 +22,6 @@ builder.Services.AddSingleton<FirebaseClient>(provider =>
     return new FirebaseClient(databaseUrl);
 });
 
-builder.Services.AddScoped<IGenericRepository<User>, GenericRepository<User>>();
-builder.Services.AddScoped<IGenericRepository<Chat>, GenericRepository<Chat>>();
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
