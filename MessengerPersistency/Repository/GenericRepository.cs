@@ -1,11 +1,6 @@
 ﻿using Firebase.Database;
 using Firebase.Database.Query;
 using MessengerPersistency.IRepository;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MessengerPersistency.Repository
 {
@@ -14,10 +9,9 @@ namespace MessengerPersistency.Repository
         private readonly FirebaseClient _firebaseClient;
         private readonly string _collectionName;
 
-        public GenericRepository(FirebaseClient firebaseClient, string collectionName)
+        public GenericRepository(FirebaseClient firebaseClient)
         {
             _firebaseClient = firebaseClient;
-            _collectionName = collectionName;
         }
 
         public async Task InsertAsync(T entity)

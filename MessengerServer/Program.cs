@@ -1,4 +1,7 @@
 using Firebase.Database;
+using MessengerDomain.Entities;
+using MessengerPersistency.IRepository;
+using MessengerPersistency.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +21,9 @@ builder.Services.AddSingleton<FirebaseClient>(provider =>
 {
     return new FirebaseClient(databaseUrl);
 });
+
+builder.Services.AddScoped<IGenericRepository<User>, GenericRepository<User>>();
+builder.Services.AddScoped<IGenericRepository<Chat>, GenericRepository<Chat>>();
 
 var app = builder.Build();
 
