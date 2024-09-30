@@ -9,9 +9,10 @@ namespace MessengerPersistency.Repository
         private readonly FirebaseClient _firebaseClient;
         private readonly string _collectionName;
 
-        public GenericRepository(FirebaseClient firebaseClient)
+        public GenericRepository(FirebaseClient firebaseClient, string collectionName)
         {
             _firebaseClient = firebaseClient;
+            _collectionName = collectionName;
         }
 
         public async Task InsertAsync(T entity)

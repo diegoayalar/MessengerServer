@@ -2,6 +2,8 @@ using Firebase.Database;
 using MessengerDomain.Entities;
 using MessengerPersistency.IRepository;
 using MessengerPersistency.Repository;
+using MessengerService.CollectionExtensions;
+using MessengerService.Service;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +24,21 @@ builder.Services.AddSingleton<FirebaseClient>(provider =>
     return new FirebaseClient(databaseUrl);
 });
 
+// Registrar los servicios de Messenger, incluyendo los repositorios y entidades
+builder.Services.AddMessengerServices();
+
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        builder =>
+        {
+            builder.AllowAnyOrigin()
+                   .AllowAnyMethod()
+                   .AllowAnyHeader();
+        });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -30,6 +47,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors("AllowAll");
 
 app.UseHttpsRedirection();
 
