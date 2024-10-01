@@ -1,5 +1,6 @@
 ﻿using MessengerDomain.Entities;
 using MessengerPersistency.IRepository;
+using MessengerService.DTO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +18,18 @@ namespace MessengerService.Service
             _chatRepository = Repository;
         }
 
-        public async Task InsertUserAsync(Chat user) => await _chatRepository.InsertAsync(user);
+        public async Task InsertNewChat(NewChatRequestDTO newChat) {
+
+            var chat = new Chat
+            {
+                GroupPic = newChat.GroupPic,
+                Users = newChat.UsersIDs,
+                Description = newChat.Description,
+                IsGroup = newChat.IsGroup
+            };
+
+            await _chatRepository.InsertAsync(chat);
+        } 
         public async Task<IEnumerable<Chat>> GetAllUsersAsync() => await _chatRepository.GetAllAsync();
         public async Task<Chat> GetUserByIdAsync(string id) => await _chatRepository.GetByIdAsync(id);
         public async Task UpdateUserAsync(Chat chat) => await _chatRepository.UpdateAsync(chat);
