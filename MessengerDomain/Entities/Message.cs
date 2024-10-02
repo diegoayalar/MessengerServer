@@ -2,7 +2,11 @@
 {
     public class Message
     {
+        public string? Id { get; set; }
+
         public string? MessageText { get; set; }
+
+        public required string Sender { get; set; }
 
         public string? File {  get; set; }
 
