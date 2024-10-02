@@ -4,11 +4,6 @@ using MessengerPersistency.IRepository;
 using MessengerPersistency.Repository;
 using MessengerService.Service;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MessengerService.CollectionExtensions
 {
@@ -34,6 +29,7 @@ namespace MessengerService.CollectionExtensions
             // Registrar UserService
             services.AddScoped<UserService>();
             services.AddScoped<ChatService>();
+            services.AddScoped<AuthService>();
             return services;
         }
     }
