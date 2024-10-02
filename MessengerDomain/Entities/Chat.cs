@@ -2,6 +2,7 @@
 {
     public class Chat
     {
+        public string? Id { get; set; }
         public ICollection<Message>? Messages { get; set; }
 
         public required ICollection<string> Users { get; set; }
