@@ -12,6 +12,8 @@ namespace MessengerService.DTO
 
         public ICollection<string>? UsersIDs { get; set; }
 
+        public string? ChatName { get; set; }
+
         public string? Description { get; set; }
 
         public bool IsGroup { get; set; }

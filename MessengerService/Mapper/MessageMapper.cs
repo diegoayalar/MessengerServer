@@ -15,8 +15,16 @@ namespace MessengerService.Mapper
             return new Message
             {
                 MessageText = messageDTO.MessageText,
-                File = messageDTO.File
+                File = messageDTO.File,
+                Sender = messageDTO.Sender
             };
+        }
+
+        public static Message UpdateMessage(Message oldMessage, UpdateMessageDTO newMessageDTO)
+        {
+            oldMessage.MessageText = newMessageDTO.MessageText;
+
+            return oldMessage;
         }
     }
 }

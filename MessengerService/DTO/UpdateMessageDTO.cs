@@ -6,10 +6,8 @@ using System.Threading.Tasks;
 
 namespace MessengerService.DTO
 {
-    public class NewMessageDTO
-    {
+    public class UpdateMessageDTO { 
+        public string? id {  get; set; }
         public string? MessageText { get; set; }
-        public string? File { get; set; }
-        public string? Sender { get; set; }
     }
 }

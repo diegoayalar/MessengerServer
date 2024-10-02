@@ -4,13 +4,13 @@
     {
         public string? Id { get; set; }
 
-        public string? MessageText { get; set; }
+        public string? MessageText { get; set; } = string.Empty;
 
-        public required string Sender { get; set; }
+        public required string? Sender { get; set; } = string.Empty;
 
-        public string? File {  get; set; }
+        public string? File { get; set; } = string.Empty;
 
-        public bool ReadState { get; set; }
+        public bool ReadState { get; set; } = false;
 
         public ICollection<string>? RecivedUsers { get; set; }
 
