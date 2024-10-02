@@ -8,12 +8,12 @@ namespace MessengerService.DTO
 {
     public class NewChatRequestDTO
     {
-        public string GroupPic { get; }
+        public string? GroupPic { get; set; }
 
-        public ICollection<string> UsersIDs { get; }
+        public ICollection<string>? UsersIDs { get; set; }
 
-        public string Description { get; }
+        public string? Description { get; set; }
 
-        public bool IsGroup { get; }
+        public bool IsGroup { get; set; }
     }
 }

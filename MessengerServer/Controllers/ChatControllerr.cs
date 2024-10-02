@@ -1,4 +1,5 @@
 ﻿using MessengerDomain.Entities;
+using MessengerService.DTO;
 using MessengerService.Service;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,9 +17,16 @@ namespace MessengerServer.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> RegisterUser([FromBody] Chat chat)
+        public async Task<IActionResult> RegisterUser([FromBody] NewChatRequestDTO chat)
         {
-            await _chatService.InsertUserAsync(chat);
+            await _chatService.InsertNewChat(chat);
+            return Ok();
+        }
+
+        [HttpPatch("/addMessage/{id}")]
+        public async Task<IActionResult> addMessageToChat(string id,[FromBody] NewMessageDTO message)
+        {
+            await _chatService.AddMessageToChat(message, id);
             return Ok();
         }
 
