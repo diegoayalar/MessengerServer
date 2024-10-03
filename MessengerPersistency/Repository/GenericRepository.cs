@@ -31,6 +31,17 @@ namespace MessengerPersistency.Repository
             return await _firebaseClient.Child(_collectionName).Child(id).OnceSingleAsync<T>();
         }
 
+        public async Task<T> GetByFieldAsync(string fieldName, string fieldValue)
+        {
+            var result = await _firebaseClient
+                .Child(_collectionName)
+                .OrderBy(fieldName)
+                .EqualTo(fieldValue)
+                .OnceAsync<T>();
+
+            return result.FirstOrDefault()?.Object;
+        }
+
         public async Task UpdateAsync(T entity)
         {
             var id = (entity.GetType().GetProperty("Id")?.GetValue(entity, null) as string);
