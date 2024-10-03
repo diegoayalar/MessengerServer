@@ -15,13 +15,6 @@ namespace MessengerServer.Controllers
             _userService = userService;
         }
 
-        [HttpPost]
-        public async Task<IActionResult> RegisterUser([FromBody] User user)
-        {
-            await _userService.InsertUserAsync(user);
-            return Ok();
-        }
-
         [HttpGet]
         public async Task<IActionResult> user()
         {
