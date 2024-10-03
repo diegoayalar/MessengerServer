@@ -1,7 +1,7 @@
 ﻿using MessengerDomain.DTOs;
 using MessengerDomain.Entities;
 
-namespace MessengerService.Mapper
+namespace MessengerService.Util.Mapper
 {
     public static class UserMapper
     {

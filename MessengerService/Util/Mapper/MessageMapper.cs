@@ -6,11 +6,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MessengerService.Mapper
+namespace MessengerService.Util.Mapper
 {
     public static class MessageMapper
     {
-        public static Message NewMessageDTOToMessage(NewMessageDTO messageDTO) {
+        public static Message NewMessageDTOToMessage(NewMessageDTO messageDTO)
+        {
 
             return new Message
             {

@@ -7,11 +7,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MessengerService.Mapper
+namespace MessengerService.Util.Mapper
 {
     public static class ChatMapper
     {
-        public static Chat NewChatRequestToChat(NewChatRequestDTO newChat) {
+        public static Chat NewChatRequestToChat(NewChatRequestDTO newChat)
+        {
             return new Chat
             {
                 GroupPic = newChat.GroupPic,
