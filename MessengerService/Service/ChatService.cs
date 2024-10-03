@@ -1,7 +1,7 @@
 ﻿using MessengerDomain.Entities;
 using MessengerPersistency.IRepository;
 using MessengerService.DTO;
-using MessengerService.Mapper;
+using MessengerService.Util.Mapper;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;

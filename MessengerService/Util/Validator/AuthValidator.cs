@@ -1,7 +1,7 @@
 ﻿using MessengerDomain.DTOs;
 using System.Text.RegularExpressions;
 
-namespace MessengerService.Validator
+namespace MessengerService.Util.Validator
 {
     public static class AuthValidator
     {

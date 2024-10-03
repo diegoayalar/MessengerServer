@@ -1,6 +1,6 @@
 ﻿using MessengerDomain.DTOs;
-using MessengerService.Mapper;
-using MessengerService.Validator;
+using MessengerService.Util.Mapper;
+using MessengerService.Util.Validator;
 
 namespace MessengerService.Service
 {
