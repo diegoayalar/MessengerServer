@@ -1,4 +1,5 @@
-﻿using MessengerDomain.Entities;
+﻿using LiteDB;
+using MessengerDomain.Entities;
 using MessengerPersistency.IRepository;
 using MessengerService.DTO;
 using MessengerService.Util.Mapper;
@@ -34,35 +35,63 @@ namespace MessengerService.Service
             }
         }
 
+        public async Task InsertNewChat2(Chat newChat)
+        {
+            try
+            {
+                _logger.LogInformation("Iniciando la incerción de un nuevo chat.");
+                //var chat = ChatMapper.NewChatRequestToChat(newChat);
+                await _chatRepository.InsertAsync(newChat);
+                _logger.LogInformation("Se ha creado el nuevo chat correctamente.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al agregar un nuevo chat.");
+            }
+        }
+
         public async Task AddMessageToChat(NewMessageDTO message, string chatId)
         {
             _logger.LogInformation("Iniciando la incerción de un nuevo mensaje en el chat.");
             try
             {
-                Chat chat = await GetChatById(chatId);
-                chat.Id = chatId;
-                if (chat == null)
-                {
-                    throw new ArgumentException("No se ha encontrado ningún chat, verifique la información.");
-                }
-
-                if (chat.Messages == null)
-                {
-                    chat.Messages = new List<Message>();
-                }
-
                 var newMessageId = Guid.NewGuid().ToString();
                 var newMessage = MessageMapper.NewMessageDTOToMessage(message);
-                newMessage.Id = newMessageId;
+                newMessage._Id = newMessageId;
 
-                chat.Messages.Add(newMessage);
-                await _chatRepository.UpdateAsync(chat);
+                newMessage.UnrecivedUsers = new List<string>(); 
+                newMessage.UneadUsers = new List<string>();
+                newMessage.ReadUsers = new List<string>();
+                newMessage.RecivedUsers = new List<string>();
+
+                newMessage.ReadUsers.Add(newMessage.Sender);
+                newMessage.RecivedUsers.Add(newMessage.Sender);
+
+                newMessage.UneadUsers.Add(newMessage.Sender);
+                newMessage.UnrecivedUsers.Add(newMessage.Sender);
+                await _chatRepository.UpdateOrAddChildItem(chatId,"Messages", newMessageId, newMessage);
                 _logger.LogInformation(" Se ha agregado correctamente el mensaje.");
 
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al agregar un mensaje a el chat.");
+            }
+        }
+
+        public async Task<IEnumerable<Message>> getFilteredMessage(string parentID, int size) 
+        {
+            _logger.LogInformation("Iniciando la busqueda y retorno de los mensajes en el chat.");
+
+            try 
+            {
+                return await _chatRepository.getFiltredItems<Message>(parentID, "Messages", size);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al retornar los mensajes del chat.");
+                return null;
             }
         }
 
@@ -89,28 +118,21 @@ namespace MessengerService.Service
             }
         }
 
-        public async Task EditMessageFromChat(UpdateMessageDTO newChat, string chatId)
+        public async Task EditMessageFromChat(UpdateMessageDTO newChat, string chatId,string messageId)
         {
             _logger.LogInformation("Iniciando la edición de un message.");
             try
             {
-                Chat chat = await GetChatById(chatId);
-                chat.Id = chatId;
-                if (chat == null)
-                {
-                    throw new ArgumentException("No se ha encontrado ningún chat, verifique la información.");
-                }
-
-                var oldMessage = chat.Messages.FirstOrDefault(m => m.Id == newChat.id);
+                var oldMessage = await _chatRepository.GetChildItem<Message>(chatId, "Messages", messageId);
 
                 if (oldMessage == null)
                 {
                     throw new ArgumentException("No se ha encontrado el Message que desea actualizar.");
                 }
 
-                MessageMapper.UpdateMessage(oldMessage, newChat);
+                var updatedMessage = MessageMapper.UpdateMessage(oldMessage, newChat);
 
-                await _chatRepository.UpdateAsync(chat);
+                await _chatRepository.UpdateOrAddChildItem(chatId, "Messages", messageId, updatedMessage);
                 _logger.LogInformation("Se ha actualizado correctamente el Message.");
 
             }
@@ -165,8 +187,13 @@ namespace MessengerService.Service
                 return null;
             }
 
-        } 
+        }
         public async Task UpdateUserAsync(Chat chat) => await _chatRepository.UpdateAsync(chat);
         public async Task DeleteUserAsync(string id) => await _chatRepository.DeleteAsync(id);
+
+        public async Task<IEnumerable<Chat>> GetAllChatsAsync()
+        {
+            return await _chatRepository.GetAllAsync();
+        }
     }
 }
