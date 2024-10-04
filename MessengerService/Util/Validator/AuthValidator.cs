@@ -1,25 +1,39 @@
-﻿using MessengerDomain.DTOs;
+﻿using MessengerService.DTO;
 using System.Text.RegularExpressions;
 
 namespace MessengerService.Util.Validator
 {
     public static class AuthValidator
     {
-        public static (bool IsValid, string Message) ValidateNewUser(NewUserDTO newUser)
+        private static (bool IsValid, string Message) ValidateCredentials(string email, string password)
         {
-            var emailValidation = ValidateEmail(newUser.Email);
+            var emailValidation = ValidateEmail(email);
             if (!emailValidation.IsValid)
                 return emailValidation;
 
-            var passwordValidation = ValidatePassword(newUser.Password);
+            var passwordValidation = ValidatePassword(password);
             if (!passwordValidation.IsValid)
                 return passwordValidation;
+
+            return (true, "Credentials are valid.");
+        }
+
+        public static (bool IsValid, string Message) ValidateNewUser(NewUserDTO newUser)
+        {
+            var credentialsValidation = ValidateCredentials(newUser.Email, newUser.Password);
+            if (!credentialsValidation.IsValid)
+                return credentialsValidation;
 
             var usernameValidation = ValidateUsername(newUser.Username);
             if (!usernameValidation.IsValid)
                 return usernameValidation;
 
-            return (true, "Validation successful");
+            return (true, "Validation successful.");
+        }
+
+        public static (bool IsValid, string Message) ValidateLogin(LoginUserDTO loginUser)
+        {
+            return ValidateCredentials(loginUser.Email, loginUser.Password);
         }
 
         private static (bool IsValid, string Message) ValidateEmail(string email)

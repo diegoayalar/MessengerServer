@@ -1,9 +1,7 @@
-﻿namespace MessengerDomain.DTOs
+﻿namespace MessengerService.DTO
 {
-    public class NewUserDTO
+    public class NewUserDTO : LoginUserDTO
     {
-        public required string Email { get; set; }
-        public required string Password { get; set; }
         public required string Username { get; set; }
     }
 }
