@@ -1,22 +1,27 @@
-﻿using MessengerDomain.DTOs;
-using MessengerDomain.Entities;
+﻿using MessengerDomain.Entities;
+using MessengerService.DTO;
 
-namespace MessengerService.Util.Mapper
+public static class UserMapper
 {
-    public static class UserMapper
+    private static User MapCommonFields(string email, string password)
     {
-        public static User NewUserToUser(NewUserDTO newUser)
+        return new User
         {
-            return new User
-            {
-                Email = newUser.Email,
-                Password = newUser.Password,
-                Profile = new Profile
-                {
-                    Name = newUser.Username
-                },
-                DateCreated = DateTime.UtcNow
-            };
-        }
+            Email = email,
+            Password = password,
+            DateCreated = DateTime.UtcNow
+        };
+    }
+
+    public static User NewUserToUser(NewUserDTO newUser)
+    {
+        var user = MapCommonFields(newUser.Email, newUser.Password);
+        user.Profile = new Profile { Name = newUser.Username };
+        return user;
+    }
+
+    public static User LoginUserToUser(LoginUserDTO loginUser)
+    {
+        return MapCommonFields(loginUser.Email, loginUser.Password);
     }
 }
