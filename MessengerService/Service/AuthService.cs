@@ -1,4 +1,5 @@
-﻿using MessengerService.DTO;
+﻿using FirebaseAdmin.Auth;
+using MessengerService.DTO;
 using MessengerService.Util;
 using MessengerService.Util.Validator;
 
@@ -27,14 +28,22 @@ namespace MessengerService.Service
                 return $"A user with email {existingUser.Email} already exists.";
             }
 
-            var hashedPassword = PasswordHelper.HashPassword(newUser.Password);
-            newUser.Password = hashedPassword;
+            var userArgs = new UserRecordArgs
+            {
+                Email = newUser.Email,
+                Password = newUser.Password
+            };
 
-            var user = UserMapper.NewUserToUser(newUser);
-            await _userService.InsertUserAsync(user);
-
-            return "User registered successfully.";
-
+            try
+            {
+                await FirebaseAuth.DefaultInstance.CreateUserAsync(userArgs);
+                await AddNewUserToDB(newUser);
+                return "User registered successfully.";
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
+            }
         }
 
         public async Task<string> Login(LoginUserDTO loginUser)
@@ -57,6 +66,15 @@ namespace MessengerService.Service
             }
 
             return "Login successful.";
+        }
+
+        public async Task AddNewUserToDB(NewUserDTO newUser)
+        {
+            var hashedPassword = PasswordHelper.HashPassword(newUser.Password);
+            newUser.Password = hashedPassword;
+
+            var user = UserMapper.NewUserToUser(newUser);
+            await _userService.InsertUserAsync(user);
         }
     }
 }
