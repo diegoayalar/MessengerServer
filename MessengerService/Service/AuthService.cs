@@ -1,5 +1,5 @@
-﻿using MessengerDomain.DTOs;
-using MessengerService.Util.Mapper;
+﻿using MessengerService.DTO;
+using MessengerService.Util;
 using MessengerService.Util.Validator;
 
 namespace MessengerService.Service
@@ -27,18 +27,36 @@ namespace MessengerService.Service
                 return $"A user with email {existingUser.Email} already exists.";
             }
 
-            var hashedPassword = HashPassword(newUser.Password);
+            var hashedPassword = PasswordHelper.HashPassword(newUser.Password);
             newUser.Password = hashedPassword;
 
             var user = UserMapper.NewUserToUser(newUser);
             await _userService.InsertUserAsync(user);
 
             return "User registered successfully.";
+
         }
 
-        private static string HashPassword(string password)
+        public async Task<string> Login(LoginUserDTO loginUser)
         {
-            return BCrypt.Net.BCrypt.HashPassword(password);
+            var validation = AuthValidator.ValidateLogin(loginUser);
+            if (!validation.IsValid)
+            {
+                return validation.Message;
+            }
+
+            var existingUser = await _userService.GetUserByEmailAsync(loginUser.Email);
+            if (existingUser == null)
+            {
+                return $"There is no user with email {loginUser.Email}";
+            }
+
+            if (!PasswordHelper.VerifyPassword(loginUser.Password, existingUser.Password))
+            {
+                return "Incorrect password.";
+            }
+
+            return "Login successful.";
         }
     }
 }
