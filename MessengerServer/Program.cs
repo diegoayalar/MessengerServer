@@ -1,4 +1,5 @@
 using Firebase.Database;
+using Firebase.Storage;
 using MessengerDomain.Entities;
 using MessengerPersistency.IRepository;
 using MessengerPersistency.Repository;
@@ -21,12 +22,20 @@ builder.Services.AddSwaggerGen();
 // Configuración de Firebase
 var firebaseConfig = builder.Configuration.GetSection("Firebase");
 var databaseUrl = firebaseConfig["DatabaseUrl"];
+var storageUrl = firebaseConfig["StorageUrl"];
 
 // Agrega el servicio FirebaseClient usando la URL de la base de datos
 builder.Services.AddSingleton<FirebaseClient>(provider =>
 {
     return new FirebaseClient(databaseUrl);
 });
+
+builder.Services.AddSingleton<FirebaseStorage>(provider =>
+{
+    return new FirebaseStorage(storageUrl);
+});
+
+builder.Services.AddScoped<FirebaseStorageService>();
 
 // Registrar los servicios de Messenger, incluyendo los repositorios y entidades
 builder.Services.AddMessengerServices();

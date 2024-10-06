@@ -2,6 +2,7 @@
 using MessengerService.DTO;
 using MessengerService.Service;
 using Microsoft.AspNetCore.Mvc;
+using System.IO;
 
 namespace MessengerServer.Controllers
 {
@@ -18,9 +19,11 @@ namespace MessengerServer.Controllers
         }
 
         [HttpPost("/addNewChat")]
-        public async Task<IActionResult> AddChat([FromBody] NewChatRequestDTO chat)
+        public async Task<IActionResult> AddChat([FromForm] NewChatRequestDTO chat, IFormFile? groupPicFile)
         {
-            await _chatService.InsertNewChat(chat);
+            _logger.LogInformation("ChatController: AddChat.");
+            Stream? fileStream = groupPicFile != null ? groupPicFile.OpenReadStream() : null;
+            await _chatService.InsertNewChat(chat, fileStream);
             return Ok();
         }
 
@@ -33,9 +36,10 @@ namespace MessengerServer.Controllers
         }
 
         [HttpPatch("/editChat/{id}")]
-        public async Task<IActionResult> EditChat(string id, [FromBody] NewChatRequestDTO newInfoChat) {
+        public async Task<IActionResult> EditChat(string id, [FromForm] UpdateChatRequest newInfoChat, IFormFile? groupPicFile) {
             _logger.LogInformation("ChatController: EditChat.");
-            await _chatService.EditChat(newInfoChat, id);
+            Stream? fileStream = groupPicFile != null ? groupPicFile.OpenReadStream() : null;
+            await _chatService.EditChat(newInfoChat, id, fileStream);
             return Ok();
         }
 
@@ -58,6 +62,18 @@ namespace MessengerServer.Controllers
         [HttpGet]
         public async Task<IActionResult> get() { 
             return Ok(await _chatService.GetAllChatsAsync());
+        }
+
+        [HttpGet("/chat/{chatId}")]
+        public async Task<IActionResult> getChatByID(string chatId)
+        {
+            _logger.LogInformation("ChatController: getChatByID.");
+            Chat chat = await _chatService.GetChatById(chatId);
+            if (chat == null)
+            {
+                return NotFound("Chat no encontrado.");
+            }
+            return Ok(chat);
         }
 
         [HttpGet("/getFilteredMessage/chat/{chatID}")]

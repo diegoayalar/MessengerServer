@@ -6,14 +6,11 @@ using System.Threading.Tasks;
 
 namespace MessengerService.DTO
 {
-    public class NewChatRequestDTO
+    public class UpdateChatRequest 
     {
-        public ICollection<string>? UsersIDs { get; set; }
-
         public string? ChatName { get; set; }
 
         public string? Description { get; set; }
 
-        public bool IsGroup { get; set; }
     }
 }
