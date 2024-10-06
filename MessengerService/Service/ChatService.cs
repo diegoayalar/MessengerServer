@@ -1,6 +1,7 @@
 ﻿using LiteDB;
 using MessengerDomain.Entities;
 using MessengerPersistency.IRepository;
+using MessengerPersistency.Repository;
 using MessengerService.DTO;
 using MessengerService.Util.Mapper;
 using Microsoft.Extensions.Logging;
@@ -16,35 +17,36 @@ namespace MessengerService.Service
     {
         private readonly IGenericRepository<Chat> _chatRepository;
         private readonly ILogger<ChatService> _logger;
-
-        public ChatService(IGenericRepository<Chat> Repository, ILogger<ChatService> logger)
+        private readonly FirebaseStorageService _firebaseStorageService;
+        public ChatService(IGenericRepository<Chat> Repository, ILogger<ChatService> logger, FirebaseStorageService firebaseStorageService)
         {
             _chatRepository = Repository;
             _logger = logger;
+            _firebaseStorageService = firebaseStorageService;
         }
 
-        public async Task InsertNewChat(NewChatRequestDTO newChat) {
+        public async Task InsertNewChat(NewChatRequestDTO newChat, Stream? profilePictureStream) {
             try {
-                _logger.LogInformation("Iniciando la incerción de un nuevo chat.");
-                var chat = ChatMapper.NewChatRequestToChat(newChat);
+                _logger.LogInformation("Iniciando la inserción de un nuevo chat.");
+
+                var nameFile = "";
+
+                if (profilePictureStream != null)
+                {
+                    _logger.LogInformation("Subiendo nueva imagen de perfil al almacenamiento Firebase.");
+
+                    // Generar un nombre único para la imagen (Se puede cambiar la extensión ej: .png)
+                    string newFileName = $"{Guid.NewGuid()}.jpg";
+                    nameFile = newFileName;
+
+                    // Subir la nueva imagen al almacenamiento de Firebase
+                    await _firebaseStorageService.UploadFileAsync(profilePictureStream, newFileName);
+
+                }
+                var chat = ChatMapper.NewChatRequestToChat(newChat, nameFile);
                 await _chatRepository.InsertAsync(chat);
                 _logger.LogInformation("Se ha creado el nuevo chat correctamente.");
             } catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error al agregar un nuevo chat.");
-            }
-        }
-
-        public async Task InsertNewChat2(Chat newChat)
-        {
-            try
-            {
-                _logger.LogInformation("Iniciando la incerción de un nuevo chat.");
-                //var chat = ChatMapper.NewChatRequestToChat(newChat);
-                await _chatRepository.InsertAsync(newChat);
-                _logger.LogInformation("Se ha creado el nuevo chat correctamente.");
-            }
-            catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al agregar un nuevo chat.");
             }
@@ -95,21 +97,44 @@ namespace MessengerService.Service
             }
         }
 
-        public async Task EditChat(NewChatRequestDTO newChat, string chatId)
+        public async Task EditChat(UpdateChatRequest newChat, string chatId, Stream? profilePictureStream)
         {
             _logger.LogInformation("Iniciando la edición de un chat.");
             try
             {
-                Chat chat = await GetChatById(chatId);
+                Chat chat = await _chatRepository.GetByIdAsync(chatId);
                 chat.Id = chatId;
+
                 if (chat == null)
                 {
                     throw new ArgumentException("No se ha encontrado ningún chat, verifique la información.");
                 }
 
-                var UpdatedChat = ChatMapper.UpdateChat(chat, newChat);
+                var newGroupPicUrl = chat.GroupPic;
+                if (profilePictureStream != null)
+                {
+                    _logger.LogInformation("Subiendo nueva imagen de perfil al almacenamiento Firebase.");
+
+                    // Generar un nombre único para la imagen (Se puede cambiar la extensión ej: .png)
+                    string newFileName = $"{Guid.NewGuid()}.jpg";
+
+                    // Subir la nueva imagen al almacenamiento de Firebase
+                    await _firebaseStorageService.UploadFileAsync(profilePictureStream, newFileName);
+
+                    newGroupPicUrl = newFileName;
+
+                    //Si el chat tenía una imagen anterior, eliminarla del almacenamiento
+                    if (!string.IsNullOrEmpty(chat.GroupPic))
+                    {
+                        _logger.LogInformation("Eliminando la imagen de perfil anterior del almacenamiento Firebase.");
+                        await _firebaseStorageService.DeleteFileAsync(chat.GroupPic);
+                    }
+
+                }
+
+                var UpdatedChat = ChatMapper.UpdateChat(chat, newChat, newGroupPicUrl);
                 await _chatRepository.UpdateAsync(chat);
-                _logger.LogInformation(" Se ha actualizado correctamente el chat.");
+                _logger.LogInformation("Se ha actualizado correctamente el chat.");
 
             }
             catch (Exception ex)
@@ -175,9 +200,14 @@ namespace MessengerService.Service
             try {
                 _logger.LogInformation("Iniciando la busqueda de un chat.");
                 var chat = await _chatRepository.GetByIdAsync(id);
-
+                
                 if (chat == null) {
                     throw new ArgumentException("No se ha encontrado ningún chat, verifique la información.");
+                }
+
+                if (!string.IsNullOrEmpty(chat.GroupPic))
+                {
+                    chat.GroupPic = await _firebaseStorageService.GetFileAsync(chat.GroupPic);
                 }
                 return chat;
             }
@@ -186,7 +216,6 @@ namespace MessengerService.Service
                 _logger.LogError(ex, "Error al buscar un chat.");
                 return null;
             }
-
         }
         public async Task UpdateUserAsync(Chat chat) => await _chatRepository.UpdateAsync(chat);
         public async Task DeleteUserAsync(string id) => await _chatRepository.DeleteAsync(id);
@@ -195,5 +224,6 @@ namespace MessengerService.Service
         {
             return await _chatRepository.GetAllAsync();
         }
+
     }
 }
