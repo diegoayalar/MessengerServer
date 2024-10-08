@@ -55,5 +55,21 @@ namespace MessengerPersistency.Repository
         {
             await _firebaseClient.Child(_collectionName).Child(id).DeleteAsync();
         }
+
+        public async Task DeleteByFieldAsync(string fieldName, string fieldValue)
+        {
+            var result = await _firebaseClient
+                .Child(_collectionName)
+                .OrderBy(fieldName)
+                .EqualTo(fieldValue)
+                .OnceAsync<T>();
+
+            var entityToDelete = result.FirstOrDefault();
+
+            if (entityToDelete != null)
+            {
+                await _firebaseClient.Child(_collectionName).Child(entityToDelete.Key).DeleteAsync();
+            }
+        }
     }
 }
