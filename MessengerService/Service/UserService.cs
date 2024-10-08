@@ -17,6 +17,6 @@ namespace MessengerService.Service
         public async Task<User> GetUserByIdAsync(string id) => await _userRepository.GetByIdAsync(id);
         public async Task<User> GetUserByEmailAsync(string email) => await _userRepository.GetByFieldAsync("Email", email);
         public async Task UpdateUserAsync(User user) => await _userRepository.UpdateAsync(user);
-        public async Task DeleteUserAsync(string id) => await _userRepository.DeleteAsync(id);
+        public async Task DeleteUserAsync(string email) => await _userRepository.DeleteByFieldAsync("Email", email);
     }
 }

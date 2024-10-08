@@ -8,5 +8,6 @@
         Task<T> GetByFieldAsync(string fieldName, string fieldValue);
         Task UpdateAsync(T entity);
         Task DeleteAsync(string id);
+        Task DeleteByFieldAsync(string fieldName, string fieldValue);
     }
 }

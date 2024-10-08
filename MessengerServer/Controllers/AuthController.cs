@@ -17,27 +17,47 @@ namespace MessengerServer.Controllers
         [HttpPost]
         public async Task<IActionResult> RegisterUser([FromBody] NewUserDTO newUser)
         {
-            var resultMessage = await _authService.RegisterUser(newUser);
+            var tokenOrError = await _authService.RegisterUserAsync(newUser);
 
-            if (resultMessage == "User registered successfully.")
+            if (tokenOrError != null && !tokenOrError.StartsWith("Error:") && !tokenOrError.Contains("already exists"))
             {
-                return Ok(new { Message = resultMessage });
+                return Ok(new { token = tokenOrError });
             }
 
-            return BadRequest(new { Message = resultMessage });
+            return BadRequest(new { Message = tokenOrError });
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginUserDTO loginUser)
+        public async Task<ActionResult<string>> Login([FromBody] LoginUserDTO loginUser)
         {
-            var resultMessage = await _authService.Login(loginUser);
+            var token = await _authService.LoginAsync(loginUser);
 
-            if (resultMessage == "Login successful.")
+            if (token == null)
             {
-                return Ok(new { Message = resultMessage });
+                return BadRequest("Invalid credentials.");
             }
 
-            return BadRequest(new { Message = resultMessage });
+            return Ok(token);
+        }
+
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            _authService.SignOutUser();
+            return Ok(new { Message = "User signed out successfully." });
+        }
+
+        [HttpDelete("delete-account")]
+        public async Task<IActionResult> DeleteAccount([FromBody] LoginUserDTO deleteUser)
+        {
+            var result = await _authService.DeleteAccountAsync(deleteUser);
+
+            if (result == "User account deleted successfully.")
+            {
+                return Ok(new { Message = result });
+            }
+
+            return BadRequest(new { Message = result });
         }
     }
 }
