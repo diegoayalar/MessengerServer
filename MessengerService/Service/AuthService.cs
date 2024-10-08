@@ -1,4 +1,4 @@
-﻿using FirebaseAdmin.Auth;
+﻿using Firebase.Auth;
 using MessengerService.DTO;
 using MessengerService.Util;
 using MessengerService.Util.Validator;
@@ -8,67 +8,87 @@ namespace MessengerService.Service
     public class AuthService
     {
         private readonly UserService _userService;
+        private readonly FirebaseAuthClient _firebaseAuthClient;
 
-        public AuthService(UserService userService)
+        public AuthService(UserService userService, FirebaseAuthClient firebaseAuthClient)
         {
             _userService = userService;
+            _firebaseAuthClient = firebaseAuthClient;
         }
 
-        public async Task<string> RegisterUser(NewUserDTO newUser)
+        public async Task<string?> RegisterUserAsync(NewUserDTO newUser)
         {
             var validation = AuthValidator.ValidateNewUser(newUser);
-            if (!validation.IsValid)
-            {
-                return validation.Message;
-            }
+            if (!validation.IsValid) return validation.Message;
 
-            var existingUser = await _userService.GetUserByEmailAsync(newUser.Email);
-            if (existingUser != null)
-            {
-                return $"A user with email {existingUser.Email} already exists.";
-            }
+            var userExistenceMessage = await CheckIfUserExistsAsync(newUser.Email);
+            if (userExistenceMessage != null) return userExistenceMessage;
 
-            var userArgs = new UserRecordArgs
-            {
-                Email = newUser.Email,
-                Password = newUser.Password
-            };
+            return await RegisterFirebaseUserAsync(newUser);
+        }
 
+        public async Task<string?> LoginAsync(LoginUserDTO loginUser)
+        {
             try
             {
-                await FirebaseAuth.DefaultInstance.CreateUserAsync(userArgs);
-                await AddNewUserToDB(newUser);
-                return "User registered successfully.";
+                var userCredentials = await SignInWithEmailAndPasswordAsync(loginUser);
+                return await userCredentials.User.GetIdTokenAsync();
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        public void SignOutUser()
+        {
+            _firebaseAuthClient.SignOut();
+        }
+
+        public async Task<string?> DeleteAccountAsync(LoginUserDTO deleteUser)
+        {
+            try
+            {
+                var userCredentials = await SignInWithEmailAndPasswordAsync(deleteUser);
+                await userCredentials.User.DeleteAsync();
+
+                await _userService.DeleteUserAsync(deleteUser.Email);
+
+                return "User account deleted successfully.";
+            }
+            catch (Exception)
+            {
+                return "User not found or invalid credentials.";
+            }
+        }
+
+        private async Task<string?> RegisterFirebaseUserAsync(NewUserDTO newUser)
+        {
+            try
+            {
+                var userCredentials = await _firebaseAuthClient.CreateUserWithEmailAndPasswordAsync(newUser.Email, newUser.Password);
+                await AddNewUserToDBAsync(newUser);
+                return await userCredentials.User.GetIdTokenAsync();
             }
             catch (Exception ex)
             {
-                return ex.Message;
+                return $"Error: {ex.Message}";
             }
         }
 
-        public async Task<string> Login(LoginUserDTO loginUser)
+        private async Task<UserCredential> SignInWithEmailAndPasswordAsync(LoginUserDTO loginUser)
         {
-            var validation = AuthValidator.ValidateLogin(loginUser);
-            if (!validation.IsValid)
-            {
-                return validation.Message;
-            }
-
-            var existingUser = await _userService.GetUserByEmailAsync(loginUser.Email);
-            if (existingUser == null)
-            {
-                return $"There is no user with email {loginUser.Email}";
-            }
-
-            if (!PasswordHelper.VerifyPassword(loginUser.Password, existingUser.Password))
-            {
-                return "Incorrect password.";
-            }
-
-            return "Login successful.";
+            var userCredentials = await _firebaseAuthClient.SignInWithEmailAndPasswordAsync(loginUser.Email, loginUser.Password);
+            return userCredentials;
         }
 
-        public async Task AddNewUserToDB(NewUserDTO newUser)
+        private async Task<string?> CheckIfUserExistsAsync(string email)
+        {
+            var existingUser = await _userService.GetUserByEmailAsync(email);
+            return existingUser != null ? $"A user with email {existingUser.Email} already exists." : null;
+        }
+
+        private async Task AddNewUserToDBAsync(NewUserDTO newUser)
         {
             var hashedPassword = PasswordHelper.HashPassword(newUser.Password);
             newUser.Password = hashedPassword;
