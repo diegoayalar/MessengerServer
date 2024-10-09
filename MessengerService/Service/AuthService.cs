@@ -16,7 +16,7 @@ namespace MessengerService.Service
             _firebaseAuthClient = firebaseAuthClient;
         }
 
-        public async Task<string?> RegisterUserAsync(NewUserDTO newUser)
+        public async Task<string> RegisterUserAsync(NewUserDTO newUser)
         {
             var validation = AuthValidator.ValidateNewUser(newUser);
             if (!validation.IsValid) return validation.Message;
@@ -52,9 +52,9 @@ namespace MessengerService.Service
                 var userCredentials = await SignInWithEmailAndPasswordAsync(deleteUser);
                 await userCredentials.User.DeleteAsync();
 
-                await _userService.DeleteUserAsync(deleteUser.Email);
+                await _userService.UpdateUserIsActiveAsync(deleteUser.Email, false);
 
-                return "User account deleted successfully.";
+                return null;
             }
             catch (Exception)
             {
@@ -62,7 +62,20 @@ namespace MessengerService.Service
             }
         }
 
-        private async Task<string?> RegisterFirebaseUserAsync(NewUserDTO newUser)
+        public async Task<string?> SendPasswordResetEmailAsync(string email)
+        {
+            try
+            {
+                await _firebaseAuthClient.ResetEmailPasswordAsync(email);
+                return null;
+            }
+            catch (Exception ex)
+            {
+                return $"Error sending password reset email: {ex.Message}";
+            }
+        }
+
+        private async Task<string> RegisterFirebaseUserAsync(NewUserDTO newUser)
         {
             try
             {

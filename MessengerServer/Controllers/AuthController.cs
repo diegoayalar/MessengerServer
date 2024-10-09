@@ -19,12 +19,12 @@ namespace MessengerServer.Controllers
         {
             var tokenOrError = await _authService.RegisterUserAsync(newUser);
 
-            if (tokenOrError != null && !tokenOrError.StartsWith("Error:") && !tokenOrError.Contains("already exists"))
+            if (tokenOrError.StartsWith("Error:") || tokenOrError.Contains("already exists"))
             {
-                return Ok(new { token = tokenOrError });
+                return BadRequest(new { Message = tokenOrError });
             }
 
-            return BadRequest(new { Message = tokenOrError });
+            return Ok(tokenOrError);
         }
 
         [HttpPost("login")]
@@ -52,9 +52,22 @@ namespace MessengerServer.Controllers
         {
             var result = await _authService.DeleteAccountAsync(deleteUser);
 
-            if (result == "User account deleted successfully.")
+            if (result == null)
             {
-                return Ok(new { Message = result });
+                return Ok(new { Message = "User account deleted successfully." });
+            }
+
+            return BadRequest(new { Message = result });
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] string email)
+        {
+            var result = await _authService.SendPasswordResetEmailAsync(email);
+
+            if (result == null)
+            {
+                return Ok(new { Message = "Password reset email sent." });
             }
 
             return BadRequest(new { Message = result });
