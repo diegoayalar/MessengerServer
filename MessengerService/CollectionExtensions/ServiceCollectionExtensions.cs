@@ -1,4 +1,5 @@
 ﻿using Firebase.Database;
+using Firebase.Storage;
 using MessengerDomain.Entities;
 using MessengerPersistency.IRepository;
 using MessengerPersistency.Repository;
@@ -30,6 +31,7 @@ namespace MessengerService.CollectionExtensions
             services.AddScoped<UserService>();
             services.AddScoped<ChatService>();
             services.AddScoped<AuthService>();
+            
             return services;
         }
     }

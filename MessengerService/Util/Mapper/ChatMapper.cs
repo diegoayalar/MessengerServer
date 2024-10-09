@@ -11,11 +11,11 @@ namespace MessengerService.Util.Mapper
 {
     public static class ChatMapper
     {
-        public static Chat NewChatRequestToChat(NewChatRequestDTO newChat)
+        public static Chat NewChatRequestToChat(NewChatRequestDTO newChat, string nameFile)
         {
             return new Chat
             {
-                GroupPic = newChat.GroupPic,
+                GroupPic = nameFile,
                 Users = newChat.UsersIDs,
                 Description = newChat.Description,
                 IsGroup = newChat.IsGroup,
@@ -23,9 +23,9 @@ namespace MessengerService.Util.Mapper
             };
         }
 
-        public static Chat UpdateChat(Chat oldChat, NewChatRequestDTO newChat)
+        public static Chat UpdateChat(Chat oldChat, UpdateChatRequest newChat, string ImageName)
         {
-            oldChat.GroupPic = newChat.GroupPic;
+            oldChat.GroupPic = ImageName;
             oldChat.ChatName = newChat.ChatName;
             oldChat.Description = newChat.Description;
 

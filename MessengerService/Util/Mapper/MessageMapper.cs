@@ -23,9 +23,19 @@ namespace MessengerService.Util.Mapper
 
         public static Message UpdateMessage(Message oldMessage, UpdateMessageDTO newMessageDTO)
         {
-            oldMessage.MessageText = newMessageDTO.MessageText;
-
-            return oldMessage;
+            return new Message
+            {
+                _Id = oldMessage._Id,
+                MessageText = newMessageDTO.MessageText,
+                Sender = oldMessage.Sender, 
+                File = oldMessage.File,
+                ReadState = oldMessage.ReadState, 
+                RecivedUsers = oldMessage.RecivedUsers,
+                UnrecivedUsers = oldMessage.UnrecivedUsers,
+                ReadUsers = oldMessage.ReadUsers,
+                UneadUsers = oldMessage.UneadUsers,
+                DateSent = oldMessage.DateSent 
+            };
         }
     }
 }
