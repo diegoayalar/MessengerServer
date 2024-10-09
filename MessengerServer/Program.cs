@@ -1,10 +1,11 @@
+using Firebase.Auth;
+using Firebase.Auth.Providers;
 using Firebase.Database;
 using Firebase.Storage;
 using MessengerDomain.Entities;
 using MessengerPersistency.IRepository;
 using MessengerPersistency.Repository;
 using MessengerService.CollectionExtensions;
-using MessengerService.Service;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,7 +20,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Configuración de Firebase
+// Configuraciï¿½n de Firebase
 var firebaseConfig = builder.Configuration.GetSection("Firebase");
 var databaseUrl = firebaseConfig["DatabaseUrl"];
 var storageUrl = firebaseConfig["StorageUrl"];
@@ -36,6 +37,18 @@ builder.Services.AddSingleton<FirebaseStorage>(provider =>
 });
 
 builder.Services.AddScoped<FirebaseStorageService>();
+
+var apiKey = firebaseConfig["ApiKey"];
+var authDomain = firebaseConfig["AuthDomain"];
+
+builder.Services.AddSingleton<FirebaseAuthClient>(firebaseAuth =>
+{
+    return new FirebaseAuthClient(new FirebaseAuthConfig {
+        ApiKey = apiKey,
+        AuthDomain = authDomain,
+        Providers = [new EmailProvider()],
+    });
+});
 
 // Registrar los servicios de Messenger, incluyendo los repositorios y entidades
 builder.Services.AddMessengerServices();
