@@ -2,7 +2,7 @@
 {
     public class Message
     {
-        public string? Id { get; set; }
+        public string? _Id { get; set; }
 
         public string? MessageText { get; set; } = string.Empty;
 

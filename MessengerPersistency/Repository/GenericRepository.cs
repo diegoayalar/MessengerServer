@@ -1,5 +1,6 @@
 ﻿using Firebase.Database;
 using Firebase.Database.Query;
+using MessengerDomain.Entities;
 using MessengerPersistency.IRepository;
 
 namespace MessengerPersistency.Repository
@@ -40,6 +41,41 @@ namespace MessengerPersistency.Repository
                 .OnceAsync<T>();
 
             return result.FirstOrDefault()?.Object;
+        }
+
+        public async Task<T> GetChildItem<T>(string parentID, string childCollection, string childID) { 
+            
+            var result = await _firebaseClient
+                .Child(_collectionName)
+                .Child(parentID)
+                .Child(childCollection)
+                .Child(childID)
+                .OnceSingleAsync<T>();
+
+            return result;
+        }
+
+        public async Task<IEnumerable<T>> getFiltredItems<T>(string parentID, string childCollection, int size) {
+
+            var listItems = await _firebaseClient
+                .Child(_collectionName)
+                .Child(parentID)
+                .Child(childCollection)
+                .OrderBy("DateSent")
+                .LimitToLast(size)
+                .OnceAsync<T>();
+
+            
+            return listItems.Select(item => item.Object);
+        }
+        public async Task UpdateOrAddChildItem(string parentID, string childCollection, string childID, Object entity) {
+
+            await _firebaseClient
+                .Child(_collectionName)
+                .Child(parentID)
+                .Child(childCollection)
+                .Child(childID)
+                .PatchAsync(entity);
         }
 
         public async Task UpdateAsync(T entity)

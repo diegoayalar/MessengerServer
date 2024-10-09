@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace MessengerService.DTO
 {
     public class UpdateMessageDTO { 
-        public string? id {  get; set; }
+        //public string? id {  get; set; }
         public string? MessageText { get; set; }
     }
 }
