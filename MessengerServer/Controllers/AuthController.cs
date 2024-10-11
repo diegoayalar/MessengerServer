@@ -17,14 +17,14 @@ namespace MessengerServer.Controllers
         [HttpPost]
         public async Task<IActionResult> RegisterUser([FromBody] NewUserDTO newUser)
         {
-            var tokenOrError = await _authService.RegisterUserAsync(newUser);
+            var response = await _authService.RegisterUserAsync(newUser);
 
-            if (tokenOrError.StartsWith("Error:") || tokenOrError.Contains("already exists"))
+            if (response.StartsWith("Error:") || response.Contains("already exists"))
             {
-                return BadRequest(new { Message = tokenOrError });
+                return BadRequest(new { Message = response });
             }
 
-            return Ok(tokenOrError);
+            return Ok(response);
         }
 
         [HttpPost("login")]
@@ -48,9 +48,9 @@ namespace MessengerServer.Controllers
         }
 
         [HttpDelete("delete-account")]
-        public async Task<IActionResult> DeleteAccount([FromBody] LoginUserDTO deleteUser)
+        public async Task<IActionResult> DeleteAccount([FromBody] LoginUserDTO userToDelete)
         {
-            var result = await _authService.DeleteAccountAsync(deleteUser);
+            var result = await _authService.DeleteAccountAsync(userToDelete);
 
             if (result == null)
             {
