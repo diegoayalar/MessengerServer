@@ -8,7 +8,7 @@
 
         public string? ProfilePic {  get; set; }
 
-        public int Status {  get; set; }
+        public int? Status {  get; set; }
 
     }
 }

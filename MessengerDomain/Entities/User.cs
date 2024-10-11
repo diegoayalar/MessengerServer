@@ -2,9 +2,10 @@
 {
     public class User
     {
-        public required string Email { get; set; }
+        public string? Id { get; set; }
+        public string? Email { get; set; }
 
-        public required string Password { get; set; }
+        public string? Password { get; set; }
 
         public ICollection<string>? Chats { get; set; }
 
