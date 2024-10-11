@@ -16,7 +16,7 @@ namespace MessengerService.Service
             _firebaseAuthClient = firebaseAuthClient;
         }
 
-        public async Task<string?> RegisterUserAsync(NewUserDTO newUser)
+        public async Task<string> RegisterUserAsync(NewUserDTO newUser)
         {
             var validation = AuthValidator.ValidateNewUser(newUser);
             if (!validation.IsValid) return validation.Message;
@@ -31,7 +31,7 @@ namespace MessengerService.Service
         {
             try
             {
-                var userCredentials = await SignInWithEmailAndPasswordAsync(loginUser);
+                var userCredentials = await SignInWithEmailAndPasswordAsync(loginUser.Email, loginUser.Password);
                 return await userCredentials.User.GetIdTokenAsync();
             }
             catch (Exception)
@@ -45,16 +45,21 @@ namespace MessengerService.Service
             _firebaseAuthClient.SignOut();
         }
 
-        public async Task<string?> DeleteAccountAsync(LoginUserDTO deleteUser)
+        public async Task<string?> DeleteAccountAsync(LoginUserDTO userToDelete)
         {
             try
             {
-                var userCredentials = await SignInWithEmailAndPasswordAsync(deleteUser);
+                var user = await _userService.GetUserByEmailAsync(userToDelete.Email);
+                if(user == null) throw new Exception();
+
+                var userCredentials = await SignInWithEmailAndPasswordAsync(user.Email, userToDelete.Password);
                 await userCredentials.User.DeleteAsync();
 
-                await _userService.DeleteUserAsync(deleteUser.Email);
+                await _userService.UpdateUserIsActiveAsync(user.Id, false);
+                await _userService.DeleteUserDataAsync(user);
+                SignOutUser();
 
-                return "User account deleted successfully.";
+                return null;
             }
             catch (Exception)
             {
@@ -62,11 +67,25 @@ namespace MessengerService.Service
             }
         }
 
-        private async Task<string?> RegisterFirebaseUserAsync(NewUserDTO newUser)
+        public async Task<string?> SendPasswordResetEmailAsync(string email)
+        {
+            try
+            {
+                await _firebaseAuthClient.ResetEmailPasswordAsync(email);
+                return null;
+            }
+            catch (Exception ex)
+            {
+                return $"Error sending password reset email: {ex.Message}";
+            }
+        }
+
+        private async Task<string> RegisterFirebaseUserAsync(NewUserDTO newUser)
         {
             try
             {
                 var userCredentials = await _firebaseAuthClient.CreateUserWithEmailAndPasswordAsync(newUser.Email, newUser.Password);
+
                 await AddNewUserToDBAsync(newUser);
                 return await userCredentials.User.GetIdTokenAsync();
             }
@@ -76,9 +95,9 @@ namespace MessengerService.Service
             }
         }
 
-        private async Task<UserCredential> SignInWithEmailAndPasswordAsync(LoginUserDTO loginUser)
+        private async Task<UserCredential> SignInWithEmailAndPasswordAsync(string email, string password)
         {
-            var userCredentials = await _firebaseAuthClient.SignInWithEmailAndPasswordAsync(loginUser.Email, loginUser.Password);
+            var userCredentials = await _firebaseAuthClient.SignInWithEmailAndPasswordAsync(email, password);
             return userCredentials;
         }
 
@@ -94,7 +113,12 @@ namespace MessengerService.Service
             newUser.Password = hashedPassword;
 
             var user = UserMapper.NewUserToUser(newUser);
-            await _userService.InsertUserAsync(user);
+
+            var instertedUser = await _userService.InsertUserAsync(user);
+
+            user.Id = instertedUser.Key;
+
+            await _userService.UpdateUserAsync(user);
         }
     }
 }

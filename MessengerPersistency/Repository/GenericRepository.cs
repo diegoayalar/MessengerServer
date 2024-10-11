@@ -16,9 +16,9 @@ namespace MessengerPersistency.Repository
             _collectionName = collectionName;
         }
 
-        public async Task InsertAsync(T entity)
+        public async Task<FirebaseObject<T>> InsertAsync(T entity)
         {
-            await _firebaseClient.Child(_collectionName).PostAsync(entity);
+            return await _firebaseClient.Child(_collectionName).PostAsync(entity);
         }
 
         public async Task<IEnumerable<T>> GetAllAsync()
