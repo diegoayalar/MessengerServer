@@ -16,7 +16,11 @@ public static class UserMapper
     public static User NewUserToUser(NewUserDTO newUser)
     {
         var user = MapCommonFields(newUser.Email, newUser.Password);
-        user.Profile = new Profile { Name = newUser.Username };
+        user.Profile = new Profile
+        { 
+            Name = newUser.Username,
+            Status = 0,
+        };
         return user;
     }
 
