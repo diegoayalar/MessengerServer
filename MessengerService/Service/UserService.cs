@@ -1,16 +1,19 @@
 ﻿using Firebase.Database;
 using MessengerDomain.Entities;
 using MessengerPersistency.IRepository;
+using MessengerPersistency.Repository;
 
 namespace MessengerService.Service
 {
     public class UserService
     {
         private readonly IGenericRepository<User> _userRepository;
+        private readonly FirebaseStorageService _firebaseStorageService;
 
-        public UserService(IGenericRepository<User> userRepository)
+        public UserService(IGenericRepository<User> userRepository, FirebaseStorageService firebaseStorageService)
         {
             _userRepository = userRepository;
+            _firebaseStorageService = firebaseStorageService;
         }
 
         public async Task<FirebaseObject<User>> InsertUserAsync(User user)
@@ -20,19 +23,51 @@ namespace MessengerService.Service
 
         public async Task UpdateUserAsync(User user) => await _userRepository.UpdateAsync(user);
         public async Task<IEnumerable<User>> GetAllUsersAsync() => await _userRepository.GetAllAsync();
-        public async Task<User> GetUserByIdAsync(string id) => await _userRepository.GetByIdAsync(id);
-        public async Task<User> GetUserByEmailAsync(string email) => await _userRepository.GetByFieldAsync("Email", email);
-        public async Task UpdateUserIsActiveAsync(string id, bool isActive)
-        {
-            var user = await GetUserByIdAsync(id) ?? throw new Exception("User not found.");
-            user.IsActive = isActive;
+        public async Task<User?> GetUserByIdAsync(string id) => await _userRepository.GetByIdAsync(id);
+        public async Task<User?> GetUserByEmailAsync(string email) => await _userRepository.GetByFieldAsync("Email", email);
 
-            await _userRepository.UpdateAsync(user);
+        public async Task<(bool Success, string? ErrorMessage)> UpdateUserFieldAsync(string id, Action<User> updateAction)
+        {
+            var user = await GetUserByIdAsync(id);
+            if (user == null)
+            {
+                return (false, "User not found.");
+            }
+
+            updateAction(user);
+            await UpdateUserAsync(user);
+            return (true, null);
+        }
+
+        public async Task<(bool Success, string? ErrorMessage)> UpdateUserProfilePicAsync(string id, Stream profilePicStream)
+        {
+            if (profilePicStream == null || profilePicStream.Length == 0)
+            {
+                return (false, "Invalid profile picture stream.");
+            }
+
+            var user = await GetUserByIdAsync(id);
+            if (user == null)
+            {
+                return (false, "User not found.");
+            }
+
+            string newFileName = Guid.NewGuid().ToString();
+
+            using (profilePicStream)
+            {
+                await _firebaseStorageService.UploadFileAsync(profilePicStream, newFileName);
+            }
+
+            user.Profile.ProfilePic = newFileName;
+            await UpdateUserAsync(user);
+
+            return (true, null);
         }
 
         public async Task DeleteUserDataAsync(User user)
         {
-            DeleteCredentials(user);
+            DeleteUserCredentials(user);
 
             if (user.Profile != null)
             {
@@ -44,13 +79,11 @@ namespace MessengerService.Service
             await UpdateUserAsync(user);
         }
 
-        private void DeleteCredentials(User user)
+        private void DeleteUserCredentials(User user)
         {
             user.Email = null;
             user.Password = null;
             user.Phone = null;
         }
-
-        public async Task DeleteUserAsync(string email) => await _userRepository.DeleteByFieldAsync("Email", email);
     }
 }
