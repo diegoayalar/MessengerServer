@@ -17,60 +17,54 @@ namespace MessengerServer.Controllers
         [HttpPost]
         public async Task<IActionResult> RegisterUser([FromBody] NewUserDTO newUser)
         {
-            var response = await _authService.RegisterUserAsync(newUser);
+            var (success, response) = await _authService.RegisterUserAsync(newUser);
 
-            if (response.StartsWith("Error:") || response.Contains("already exists"))
+            if (!success)
             {
-                return BadRequest(new { Message = response });
+                return BadRequest(response);
             }
 
-            return Ok(response);
+            return Ok(new { Token = response });
         }
 
         [HttpPost("login")]
         public async Task<ActionResult<string>> Login([FromBody] LoginUserDTO loginUser)
         {
-            var token = await _authService.LoginAsync(loginUser);
+            var (success, response) = await _authService.LoginAsync(loginUser);
 
-            if (token == null)
+            if (!success)
             {
-                return BadRequest("Invalid credentials.");
+                return BadRequest(response);
             }
 
-            return Ok(token);
+            return Ok(new { Token = response });
         }
 
         [HttpPost("logout")]
         public IActionResult Logout()
         {
             _authService.SignOutUser();
-            return Ok(new { Message = "User signed out successfully." });
+            return Ok("User signed out successfully.");
         }
 
         [HttpDelete("delete-account")]
         public async Task<IActionResult> DeleteAccount([FromBody] LoginUserDTO userToDelete)
         {
-            var result = await _authService.DeleteAccountAsync(userToDelete);
+            var (success, message) = await _authService.DeleteAccountAsync(userToDelete);
 
-            if (result == null)
+            if (!success)
             {
-                return Ok(new { Message = "User account deleted successfully." });
+                return BadRequest(message);
             }
 
-            return BadRequest(new { Message = result });
+            return Ok("User account deleted successfully.");
         }
 
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword([FromBody] string email)
         {
-            var result = await _authService.SendPasswordResetEmailAsync(email);
-
-            if (result == null)
-            {
-                return Ok(new { Message = "Password reset email sent." });
-            }
-
-            return BadRequest(new { Message = result });
+            await _authService.SendPasswordResetEmailAsync(email);
+            return Ok("Password reset email sent.");
         }
     }
 }
