@@ -376,6 +376,13 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
+# Api key for firebase
+Api_Key/
+
+# Firebase configuration
+appsettings.json
+appsettings.Development.json
+
 # VS Code files for those working on multiple tools
 .vscode/*
 !.vscode/settings.json

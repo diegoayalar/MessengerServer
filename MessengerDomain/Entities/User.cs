@@ -2,10 +2,20 @@
 {
     public class User
     {
-        public int Id { get; set; }
-        public required string EmailAddress { get; set; }
-        public required string Password { get; set; }
-        public required string PhoneNumber { get; set; }
-        public required Profile Profile { get; set; }
+        public string? Id { get; set; }
+        public string? Email { get; set; }
+
+        public string? Password { get; set; }
+
+        public ICollection<string>? Chats { get; set; }
+
+        public string? Phone { get; set; }
+
+        public DateTime? DateCreated { get; set; }
+
+        public bool IsActive { get; set; } = true;
+
+        public Profile? Profile { get; set; }
+
     }
 }
