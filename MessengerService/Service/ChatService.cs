@@ -3,6 +3,8 @@ using MessengerDomain.Entities;
 using MessengerPersistency.IRepository;
 using MessengerPersistency.Repository;
 using MessengerService.DTO;
+using MessengerService.SignalR;
+using MessengerService.Util;
 using MessengerService.Util.Mapper;
 using Microsoft.Extensions.Logging;
 using System;
@@ -18,11 +20,16 @@ namespace MessengerService.Service
         private readonly IGenericRepository<Chat> _chatRepository;
         private readonly ILogger<ChatService> _logger;
         private readonly FirebaseStorageService _firebaseStorageService;
-        public ChatService(IGenericRepository<Chat> Repository, ILogger<ChatService> logger, FirebaseStorageService firebaseStorageService)
+        //private readonly SignalRHub _signalRHub;SignalRHub signalRHub ,_signalRHub = signalRHub;
+
+        public ChatService(IGenericRepository<Chat> Repository, ILogger<ChatService> logger, 
+                FirebaseStorageService firebaseStorageService
+                )
         {
             _chatRepository = Repository;
             _logger = logger;
             _firebaseStorageService = firebaseStorageService;
+            
         }
 
         public async Task InsertNewChat(NewChatRequestDTO newChat, Stream? profilePictureStream) {
@@ -43,12 +50,19 @@ namespace MessengerService.Service
                     await _firebaseStorageService.UploadFileAsync(profilePictureStream, newFileName);
 
                 }
+
+
                 var chat = ChatMapper.NewChatRequestToChat(newChat, nameFile);
-                await _chatRepository.InsertAsync(chat);
+                
+                var response = await _chatRepository.InsertAsync(chat);
+                chat.Id = response.Key;
+
+                await _chatRepository.UpdateAsync(chat);
+                //_signalRHub.CreateGroup(chat.Id, chat.Users.ToList());
                 _logger.LogInformation("Se ha creado el nuevo chat correctamente.");
             } catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al agregar un nuevo chat.");
+                _logger.LogError(ex, "Error al agregar un nuevo chat..");
             }
         }
 
@@ -72,6 +86,7 @@ namespace MessengerService.Service
                 newMessage.UneadUsers.Add(newMessage.Sender);
                 newMessage.UnrecivedUsers.Add(newMessage.Sender);
                 await _chatRepository.UpdateOrAddChildItem(chatId,"Messages", newMessageId, newMessage);
+                //await _signalRHub.SendMessage(chatId, message);
                 _logger.LogInformation(" Se ha agregado correctamente el mensaje.");
 
             }
@@ -187,6 +202,7 @@ namespace MessengerService.Service
                 }
 
                 await _chatRepository.UpdateAsync(chat);
+
                 _logger.LogInformation(" Se han removido correctamente los usuarios seleccionados del chat.");
 
             }
