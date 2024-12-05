@@ -35,6 +35,22 @@ namespace MessengerServer.Controllers
             return Ok();
         }
 
+        [HttpPatch("/chat/{chatId}/addAdmin/{adminId}")]
+        public async Task<IActionResult> AddAdminToChat([FromBody] string sender, string adminId, string chatId)
+        {
+            _logger.LogInformation("ChatController: AddAdminToChat.");
+            await _chatService.AddAdminUserToChat(sender, adminId, chatId);
+            return Ok();
+        }
+
+        [HttpPatch("/chat/{chatId}/removeAdmin/{adminId}")]
+        public async Task<IActionResult> RemoveAdminToChat([FromBody] string sender,string adminId, string chatId)
+        {
+            _logger.LogInformation("ChatController: RemoveAdminToChat.");
+            await _chatService.RemoveAdminUserToChat(sender, adminId, chatId);
+            return Ok();
+        }
+
         [HttpPatch("/editChat/{id}")]
         public async Task<IActionResult> EditChat(string id, [FromForm] UpdateChatRequest newInfoChat, IFormFile? groupPicFile) {
             _logger.LogInformation("ChatController: EditChat.");
@@ -56,6 +72,14 @@ namespace MessengerServer.Controllers
         {
             _logger.LogInformation("ChatController: RemoveUserFromChat.");
             await _chatService.RemoveUserFromChat(usersID, id);
+            return Ok();
+        }
+
+        [HttpPatch("/addUser/chat/{id}")]
+        public async Task<IActionResult> AddUserFromChat(string id, [FromBody] List<string> usersID)
+        {
+            _logger.LogInformation("ChatController: AddUserFromChat.");
+            await _chatService.AddUserToChat(usersID, id);
             return Ok();
         }
 
