@@ -6,6 +6,7 @@ using MessengerDomain.Entities;
 using MessengerPersistency.IRepository;
 using MessengerPersistency.Repository;
 using MessengerService.CollectionExtensions;
+using MessengerService.Service;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,22 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddScoped<IGenericRepository<MessengerDomain.Entities.User>>(provider =>
+{
+    var firebaseClient = provider.GetRequiredService<FirebaseClient>();
+    return new GenericRepository<MessengerDomain.Entities.User>(firebaseClient, "user");
+});
+
+builder.Services.AddScoped<IGenericRepository<Chat>>(provider =>
+{
+    var firebaseClient = provider.GetRequiredService<FirebaseClient>();
+    return new GenericRepository<Chat>(firebaseClient, "chats");
+});
+
+builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<ChatService>();
+builder.Services.AddScoped<AuthService>();
 
 // Configuraci�n de Firebase
 var firebaseConfig = builder.Configuration.GetSection("Firebase");
@@ -51,7 +68,7 @@ builder.Services.AddSingleton<FirebaseAuthClient>(firebaseAuth =>
 });
 
 // Registrar los servicios de Messenger, incluyendo los repositorios y entidades
-builder.Services.AddMessengerServices();
+//builder.Services.AddMessengerServices();
 
 
 builder.Services.AddCors(options =>
