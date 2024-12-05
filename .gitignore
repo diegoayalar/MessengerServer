@@ -403,3 +403,4 @@ Api_Key/
 
 # JetBrains Rider
 *.sln.iml
+MessengerServer/appsettings.Development.json
