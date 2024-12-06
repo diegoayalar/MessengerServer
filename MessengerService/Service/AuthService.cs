@@ -44,6 +44,19 @@ namespace MessengerService.Service
             _firebaseAuthClient.SignOut();
         }
 
+        public async Task<(bool IsValid, string UserId)> ValidateTokenAsync(string token)
+        {
+            try
+            {
+                var decodedToken = await FirebaseAdmin.Auth.FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(token);
+                return (true, decodedToken.Uid);
+            }
+            catch (FirebaseAuthException ex)
+            {
+                return (false, ex.Message);
+            }
+        }
+
         public async Task<(bool Success, string? Message)> DeleteAccountAsync(LoginUserDTO userToDelete)
         {
             var user = await _userService.GetUserByEmailAsync(userToDelete.Email);
