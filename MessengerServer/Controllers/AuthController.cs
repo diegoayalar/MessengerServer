@@ -47,6 +47,19 @@ namespace MessengerServer.Controllers
             return Ok("User signed out successfully.");
         }
 
+        [HttpPost("validate-token")]
+        public async Task<IActionResult> ValidateToken([FromBody] string token)
+        {
+            var (isValid, userIdOrMessage) = await _authService.ValidateTokenAsync(token);
+
+            if (!isValid)
+            {
+                return BadRequest(new { Error = userIdOrMessage });
+            }
+
+            return Ok(new { UserId = userIdOrMessage });
+        }
+
         [HttpDelete("delete-account")]
         public async Task<IActionResult> DeleteAccount([FromBody] LoginUserDTO userToDelete)
         {
