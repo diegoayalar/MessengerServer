@@ -1,5 +1,5 @@
 ﻿using MessengerDomain.Entities;
-using MessengerService.Service;
+using MessengerService.IServices;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MessengerServer.Controllers
@@ -8,9 +8,9 @@ namespace MessengerServer.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        private readonly UserService _userService;
+        private readonly IUserService _userService;
 
-        public UserController(UserService userService)
+        public UserController(IUserService userService)
         {
             _userService = userService;
         }

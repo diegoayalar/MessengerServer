@@ -7,7 +7,8 @@ using Google.Apis.Auth.OAuth2;
 using MessengerDomain.Entities;
 using MessengerPersistency.IRepository;
 using MessengerPersistency.Repository;
-using MessengerService.Service;
+using MessengerService.IServices;
+using MessengerService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,9 +35,9 @@ builder.Services.AddScoped<IGenericRepository<Chat>>(provider =>
     return new GenericRepository<Chat>(firebaseClient, "chats");
 });
 
-builder.Services.AddScoped<UserService>();
-builder.Services.AddScoped<ChatService>();
-builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 // Configuraci�n de Firebase
 var firebaseConfig = builder.Configuration.GetSection("Firebase");

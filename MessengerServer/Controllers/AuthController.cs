@@ -1,5 +1,5 @@
 ﻿using MessengerService.DTO;
-using MessengerService.Service;
+using MessengerService.IServices;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MessengerServer.Controllers
@@ -7,9 +7,9 @@ namespace MessengerServer.Controllers
     [Route("api/[controller]")]
     public class AuthController : Controller
     {
-        private readonly AuthService _authService;
+        private readonly IAuthService _authService;
 
-        public AuthController(AuthService authService)
+        public AuthController(IAuthService authService)
         {
             _authService = authService;
         }
