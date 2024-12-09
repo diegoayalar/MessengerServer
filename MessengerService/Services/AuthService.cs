@@ -6,12 +6,12 @@ using MessengerService.Util.Validator;
 
 namespace MessengerService.Services
 {
-    public class AuthService
+    public class AuthService : IAuthService
     {
-        private readonly UserService _userService;
+        private readonly IUserService _userService;
         private readonly FirebaseAuthClient _firebaseAuthClient;
 
-        public AuthService(UserService userService, FirebaseAuthClient firebaseAuthClient)
+        public AuthService(IUserService userService, FirebaseAuthClient firebaseAuthClient)
         {
             _userService = userService;
             _firebaseAuthClient = firebaseAuthClient;

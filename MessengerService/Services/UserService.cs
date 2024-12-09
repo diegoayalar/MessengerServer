@@ -2,10 +2,11 @@
 using MessengerDomain.Entities;
 using MessengerPersistency.IRepository;
 using MessengerPersistency.Repository;
+using MessengerService.IServices;
 
 namespace MessengerService.Services
 {
-    public class UserService
+    public class UserService : IUserService
     {
         private readonly IGenericRepository<User> _userRepository;
         private readonly FirebaseStorageService _firebaseStorageService;

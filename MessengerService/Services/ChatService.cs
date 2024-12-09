@@ -2,12 +2,13 @@
 using MessengerPersistency.IRepository;
 using MessengerPersistency.Repository;
 using MessengerService.DTO;
+using MessengerService.IServices;
 using MessengerService.Util.Mapper;
 using Microsoft.Extensions.Logging;
 
 namespace MessengerService.Services
 {
-    public class ChatService
+    public class ChatService : IChatService
     {
         private readonly IGenericRepository<Chat> _chatRepository;
         private readonly ILogger<ChatService> _logger;
@@ -75,7 +76,7 @@ namespace MessengerService.Services
             }
         }
 
-        public async Task<IEnumerable<Message>> getFilteredMessage(string parentID, int size) 
+        public async Task<IEnumerable<Message>> GetFilteredMessages(string parentID, int size) 
         {
             _logger.LogInformation("Iniciando la busqueda y retorno de los mensajes en el chat.");
 
