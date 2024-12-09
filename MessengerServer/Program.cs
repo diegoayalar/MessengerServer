@@ -7,7 +7,7 @@ using Google.Apis.Auth.OAuth2;
 using MessengerDomain.Entities;
 using MessengerPersistency.IRepository;
 using MessengerPersistency.Repository;
-using MessengerService.Service;
+using MessengerService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

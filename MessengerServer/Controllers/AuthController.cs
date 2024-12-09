@@ -1,5 +1,5 @@
 ﻿using MessengerService.DTO;
-using MessengerService.Service;
+using MessengerService.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MessengerServer.Controllers

@@ -3,7 +3,7 @@ using MessengerDomain.Entities;
 using MessengerPersistency.IRepository;
 using MessengerPersistency.Repository;
 
-namespace MessengerService.Service
+namespace MessengerService.Services
 {
     public class UserService
     {

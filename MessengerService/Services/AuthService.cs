@@ -1,9 +1,10 @@
 ﻿using Firebase.Auth;
 using MessengerService.DTO;
+using MessengerService.IServices;
 using MessengerService.Util;
 using MessengerService.Util.Validator;
 
-namespace MessengerService.Service
+namespace MessengerService.Services
 {
     public class AuthService
     {
@@ -64,7 +65,7 @@ namespace MessengerService.Service
 
             var userCredentials = await SignInWithEmailAndPasswordAsync(user.Email, userToDelete.Password);
             if (userCredentials == null) return (false, "Invalid email or password.");
-            
+
             await userCredentials.User.DeleteAsync();
             await _userService.UpdateUserFieldAsync(user.Id, u => u.IsActive = false);
             await _userService.DeleteUserDataAsync(user);
@@ -90,7 +91,7 @@ namespace MessengerService.Service
             {
                 return await _firebaseAuthClient.SignInWithEmailAndPasswordAsync(email, password);
             }
-            catch(FirebaseAuthException)
+            catch (FirebaseAuthException)
             {
                 return null;
             }

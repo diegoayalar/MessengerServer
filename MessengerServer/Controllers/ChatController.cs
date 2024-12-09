@@ -1,8 +1,7 @@
 ﻿using MessengerDomain.Entities;
 using MessengerService.DTO;
-using MessengerService.Service;
+using MessengerService.Services;
 using Microsoft.AspNetCore.Mvc;
-using System.IO;
 
 namespace MessengerServer.Controllers
 {

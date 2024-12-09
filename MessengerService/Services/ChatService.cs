@@ -1,17 +1,11 @@
-﻿using LiteDB;
-using MessengerDomain.Entities;
+﻿using MessengerDomain.Entities;
 using MessengerPersistency.IRepository;
 using MessengerPersistency.Repository;
 using MessengerService.DTO;
 using MessengerService.Util.Mapper;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace MessengerService.Service
+namespace MessengerService.Services
 {
     public class ChatService
     {
