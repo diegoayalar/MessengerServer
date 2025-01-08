@@ -19,7 +19,6 @@ builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 
 // Add services to the container.
-
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -36,6 +35,12 @@ builder.Services.AddScoped<IGenericRepository<Chat>>(provider =>
 {
     var firebaseClient = provider.GetRequiredService<FirebaseClient>();
     return new GenericRepository<Chat>(firebaseClient, "chats");
+});
+
+builder.Services.AddScoped<IGenericRepository<UserConnection>>(provider =>
+{
+    var firebaseClient = provider.GetRequiredService<FirebaseClient>();
+    return new GenericRepository<UserConnection>(firebaseClient, "userConnection");
 });
 
 builder.Services.AddScoped<UserService>();
