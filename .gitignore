@@ -380,8 +380,8 @@ FodyWeavers.xsd
 Api_Key/
 
 # Firebase configuration
-appsettings.json
-appsettings.Development.json
+**/appsettings.json
+**/appsettings.Development.json
 
 # VS Code files for those working on multiple tools
 .vscode/*
@@ -403,3 +403,4 @@ appsettings.Development.json
 
 # JetBrains Rider
 *.sln.iml
+MessengerServer/appsettings.Development.json

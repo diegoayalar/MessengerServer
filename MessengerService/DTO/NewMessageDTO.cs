@@ -11,5 +11,6 @@ namespace MessengerService.DTO
         public string? MessageText { get; set; }
         public string? File { get; set; }
         public string? Sender { get; set; }
+        public DateTime SentAt {  get; set; }   
     }
 }
