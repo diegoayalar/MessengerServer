@@ -1,12 +1,14 @@
 ﻿using MessengerDomain.Entities;
 using MessengerService.DTO;
 using MessengerService.IServices;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MessengerServer.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ChatController : Controller
     {
         private readonly IChatService _chatService;

@@ -10,6 +10,10 @@ using MessengerPersistency.Repository;
 using MessengerService.IServices;
 using MessengerService.Services;
 using MessengerService.SignalR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls("http://localhost:7279");
@@ -52,6 +56,7 @@ var firebaseConfig = builder.Configuration.GetSection("Firebase");
 var databaseUrl = firebaseConfig["DatabaseUrl"];
 var storageUrl = firebaseConfig["StorageUrl"];
 var credentialsFile = firebaseConfig["CredentialsFile"];
+var projectId = firebaseConfig["ProjectID"];
 
 // Agrega el servicio FirebaseClient usando la URL de la base de datos
 builder.Services.AddSingleton<FirebaseClient>(provider =>
@@ -81,6 +86,46 @@ builder.Services.AddSingleton<FirebaseAuthClient>(firebaseAuth =>
         AuthDomain = authDomain,
         Providers = [new EmailProvider()],
     });
+});
+
+builder.Services.AddSwaggerGen(options => {
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Name = "Authorization",
+        Description = "Bearer Authentication with JWT Token",
+        Type = SecuritySchemeType.Http
+    });
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference{
+                    Id = "Bearer",
+                    Type = ReferenceType.SecurityScheme
+                }
+            },
+            new List<String>()
+        }
+    });
+});
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+{
+    options.Authority = $"https://securetoken.google.com/{projectId}";
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidIssuer = $"https://securetoken.google.com/{projectId}",
+
+        ValidateAudience = true,
+        ValidAudience = $"{projectId}",
+
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true
+    };
 });
 
 builder.Services.AddCors(options =>
