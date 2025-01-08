@@ -11,6 +11,9 @@ namespace MessengerService.IServices
         Task EditChat(UpdateChatRequest newChat, string chatId, Stream? profilePictureStream);
         Task EditMessageFromChat(UpdateMessageDTO newMessage, string chatId, string messageId);
         Task RemoveUserFromChat(List<string>? usersIDs, string chatId);
+        Task AddUserToChat(List<string> usersIDs, string chatId);
+        Task AddAdminUserToChat(string userSender, string userAdminID, string chatId);
+        Task RemoveAdminUserToChat(string userSender, string userAdminID, string chatId);
         Task<IEnumerable<Chat>> GetAllChatsAsync();
         Task<Chat> GetChatById(string id);
         Task UpdateUserAsync(Chat chat);

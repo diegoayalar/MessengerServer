@@ -9,6 +9,7 @@ using MessengerPersistency.IRepository;
 using MessengerPersistency.Repository;
 using MessengerService.IServices;
 using MessengerService.Services;
+using MessengerService.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls("http://localhost:7279");

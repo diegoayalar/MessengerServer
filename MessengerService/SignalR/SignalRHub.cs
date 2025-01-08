@@ -2,7 +2,7 @@
 using MessengerDomain.Entities;
 using MessengerPersistency.IRepository;
 using MessengerService.DTO;
-using MessengerService.Service;
+using MessengerService.IServices;
 using MessengerService.Util;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
@@ -18,11 +18,11 @@ namespace MessengerService.SignalR
     {
         private List<string> listStudent;
 
-        private readonly ChatService _chatService;
+        private readonly IChatService _chatService;
         private readonly IGenericRepository<UserConnection> _ConnectionRepository;
         private readonly ILogger<SignalRHub> _logger;
 
-        public SignalRHub(ChatService chatService, IGenericRepository<UserConnection> ConnectionRepository,
+        public SignalRHub(IChatService chatService, IGenericRepository<UserConnection> ConnectionRepository,
                             ILogger<SignalRHub> logger) { 
             _chatService = chatService;
             _ConnectionRepository = ConnectionRepository;
