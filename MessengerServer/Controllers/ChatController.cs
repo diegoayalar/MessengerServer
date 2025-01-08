@@ -1,8 +1,7 @@
 ﻿using MessengerDomain.Entities;
 using MessengerService.DTO;
-using MessengerService.Service;
+using MessengerService.IServices;
 using Microsoft.AspNetCore.Mvc;
-using System.IO;
 
 namespace MessengerServer.Controllers
 {
@@ -10,9 +9,9 @@ namespace MessengerServer.Controllers
     [ApiController]
     public class ChatController : Controller
     {
-        private readonly ChatService _chatService;
+        private readonly IChatService _chatService;
         private readonly ILogger<ChatController> _logger;
-        public ChatController(ChatService chatService, ILogger<ChatController> logger)
+        public ChatController(IChatService chatService, ILogger<ChatController> logger)
         {
             _chatService = chatService;
             _logger = logger;
@@ -104,7 +103,7 @@ namespace MessengerServer.Controllers
         public async Task<IActionResult> GetFilteredMessages(string chatID, [FromQuery] int size)
         {
             _logger.LogInformation("ChatController: GetFilteredMessages.");
-            return Ok(await _chatService.getFilteredMessage(chatID,size));
+            return Ok(await _chatService.GetFilteredMessages(chatID,size));
         }
     }
 }
