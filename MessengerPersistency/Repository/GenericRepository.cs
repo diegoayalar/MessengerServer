@@ -107,5 +107,6 @@ namespace MessengerPersistency.Repository
                 await _firebaseClient.Child(_collectionName).Child(entityToDelete.Key).DeleteAsync();
             }
         }
+
     }
 }
