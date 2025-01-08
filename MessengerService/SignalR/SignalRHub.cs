@@ -4,6 +4,7 @@ using MessengerPersistency.IRepository;
 using MessengerService.DTO;
 using MessengerService.IServices;
 using MessengerService.Util;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using System;
@@ -14,10 +15,9 @@ using System.Threading.Tasks;
 
 namespace MessengerService.SignalR
 {
+    [Authorize]
     public class SignalRHub: Hub
     {
-        private List<string> listStudent;
-
         private readonly IChatService _chatService;
         private readonly IGenericRepository<UserConnection> _ConnectionRepository;
         private readonly ILogger<SignalRHub> _logger;
