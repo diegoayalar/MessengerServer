@@ -109,11 +109,11 @@ namespace MessengerService.Services
             newUser.Password = hashedPassword;
 
             var user = UserMapper.NewUserToUser(newUser);
+            user.Id = userID;
             //var insertedUser = await _userService.InsertUserAsync(user);
             await _userService.InsertUserAsync(user);
             //user.Id = insertedUser.Key;
-            user.Id = userID;
-            await _userService.UpdateUserAsync(user);
+            //await _userService.UpdateUserAsync(user);
         }
     }
 }
