@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -47,8 +48,7 @@ namespace MessengerService.SignalR
         {
             //Se optiene el id del usuario por parametro
             //Esto se puede reemplazar por el TOKEN
-            var userID = Context.GetHttpContext()?.Request.Query["userId"];
-
+            var userID = GetUserIdFromToken();
 
             Console.WriteLine("El dispositivo del usuario tiene esta ID:");
             Console.WriteLine(Context.ConnectionId);
@@ -81,6 +81,7 @@ namespace MessengerService.SignalR
             await base.OnConnectedAsync();
             Console.WriteLine($"New connection: {Context.ConnectionId}");
         }
+
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
             var connection = await _ConnectionRepository.GetByFieldAsync("ConnectionId",Context.ConnectionId);
@@ -93,5 +94,31 @@ namespace MessengerService.SignalR
             await base.OnDisconnectedAsync(exception);
             Console.WriteLine($"Connection lost: {Context.ConnectionId}");
         }
+
+        private string GetUserIdFromToken()
+        {
+            // Obtén el token del encabezado Authorization
+            var token = Context.GetHttpContext()?.Request.Headers["Authorization"].ToString()?.Replace("Bearer ", "");
+
+            if (string.IsNullOrEmpty(token))
+            {
+                throw new Exception("El token JWT no se encontró en los encabezados.");
+            }
+
+            //decodifica el token
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(token);
+
+            // Obtén el ID del usuario del claim "sub" o algún claim personalizado
+            var userId = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "user_id")?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                throw new Exception("El token no contiene un claim válido de ID de usuario.");
+            }
+
+            return userId;
+        }
     }
+
 }

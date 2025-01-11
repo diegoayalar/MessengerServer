@@ -48,7 +48,7 @@ namespace MessengerService.Services
                     await _firebaseStorageService.UploadFileAsync(profilePictureStream, newFileName);
 
                 }
-
+                
                 var chat = ChatMapper.NewChatRequestToChat(newChat, nameFile);
                 var response = await _chatRepository.InsertAsync(chat);
                 chat.Id = response.Key;
@@ -57,9 +57,9 @@ namespace MessengerService.Services
                 foreach (var participant in newChat.UsersIDs)
                 {
                     var connections = await _userConnectionRepository.GetAllAsync();
-                    var filteredChats = connections
-                        .Where(con => con.UserId != null && con.UserId.Contains(participant))
-                        .Select(con => con);
+                    //var filteredChats = connections
+                    //    .Where(con => con.UserId != null && con.UserId.Contains(participant))
+                    //    .Select(con => con);
 
                     foreach (var connection in connections)
                     {
@@ -265,7 +265,7 @@ namespace MessengerService.Services
             }
         }
 
-        public async Task RemoveUserFromChat(List<string> usersIDs, string chatId)
+        public async Task RemoveUserFromChat(List<string>? usersIDs, string chatId)
         {
             _logger.LogInformation("Iniciando la eliminación de usuarios de un chat.");
             try

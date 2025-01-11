@@ -19,7 +19,7 @@ namespace MessengerServer.Controllers
             _logger = logger;
         }
 
-        [HttpPost("/addNewChat")]
+        [HttpPost("add-chat")]
         public async Task<IActionResult> AddChat([FromForm] NewChatRequestDTO chat, IFormFile? groupPicFile)
         {
             _logger.LogInformation("ChatController: AddChat.");
@@ -28,15 +28,15 @@ namespace MessengerServer.Controllers
             return Ok();
         }
 
-        [HttpPatch("/chat/{chatId}/addMessage")]
-        public async Task<IActionResult> AddMessageToChat(string chatId, [FromBody] NewMessageDTO message)
-        {
-            _logger.LogInformation("ChatController: AddMessageToChat.");
-            await _chatService.AddMessageToChat(message, chatId );
-            return Ok();
-        }
+        //[HttpPatch("{chatId}/add-message")]
+        //public async Task<IActionResult> AddMessageToChat(string chatId, [FromBody] NewMessageDTO message)
+        //{
+        //    _logger.LogInformation("ChatController: AddMessageToChat.");
+        //    await _chatService.AddMessageToChat(message, chatId );
+        //    return Ok();
+        //}
 
-        [HttpPatch("/chat/{chatId}/addAdmin/{adminId}")]
+        [HttpPatch("{chatId}/add-admin/{adminId}")]
         public async Task<IActionResult> AddAdminToChat([FromBody] string sender, string adminId, string chatId)
         {
             _logger.LogInformation("ChatController: AddAdminToChat.");
@@ -44,7 +44,7 @@ namespace MessengerServer.Controllers
             return Ok();
         }
 
-        [HttpPatch("/chat/{chatId}/removeAdmin/{adminId}")]
+        [HttpPatch("{chatId}/remove-admin/{adminId}")]
         public async Task<IActionResult> RemoveAdminToChat([FromBody] string sender,string adminId, string chatId)
         {
             _logger.LogInformation("ChatController: RemoveAdminToChat.");
@@ -52,7 +52,7 @@ namespace MessengerServer.Controllers
             return Ok();
         }
 
-        [HttpPatch("/editChat/{id}")]
+        [HttpPatch("edit-chat/{id}")]
         public async Task<IActionResult> EditChat(string id, [FromForm] UpdateChatRequest newInfoChat, IFormFile? groupPicFile) {
             _logger.LogInformation("ChatController: EditChat.");
             Stream? fileStream = groupPicFile != null ? groupPicFile.OpenReadStream() : null;
@@ -60,7 +60,7 @@ namespace MessengerServer.Controllers
             return Ok();
         }
 
-        [HttpPatch("/editMessage/chat/{chatId}/messages/{messageID}")]
+        [HttpPatch("edit-message/chat/{chatId}/messages/{messageID}")]
         public async Task<IActionResult> EditMessageFromChat(string chatId, string messageID ,[FromBody] UpdateMessageDTO newInfoChat)
         {
             _logger.LogInformation("ChatController: EditChat.");
@@ -68,7 +68,7 @@ namespace MessengerServer.Controllers
             return Ok();
         }
 
-        [HttpPatch("/removeUser/chat/{id}")]
+        [HttpPatch("remove-user/chat/{id}")]
         public async Task<IActionResult> RemoveUserFromChat(string id, [FromBody] List<string> usersID)
         {
             _logger.LogInformation("ChatController: RemoveUserFromChat.");
@@ -76,7 +76,7 @@ namespace MessengerServer.Controllers
             return Ok();
         }
 
-        [HttpPatch("/addUser/chat/{id}")]
+        [HttpPatch("add-user/chat/{id}")]
         public async Task<IActionResult> AddUserFromChat(string id, [FromBody] List<string> usersID)
         {
             _logger.LogInformation("ChatController: AddUserFromChat.");
@@ -89,7 +89,7 @@ namespace MessengerServer.Controllers
             return Ok(await _chatService.GetAllChatsAsync());
         }
 
-        [HttpGet("/chat/{chatId}")]
+        [HttpGet("{chatId}")]
         public async Task<IActionResult> getChatByID(string chatId)
         {
             _logger.LogInformation("ChatController: getChatByID.");
@@ -101,7 +101,7 @@ namespace MessengerServer.Controllers
             return Ok(chat);
         }
 
-        [HttpGet("/getFilteredMessage/chat/{chatID}")]
+        [HttpGet("get-specific-message/chat/{chatID}")]
         public async Task<IActionResult> GetFilteredMessages(string chatID, [FromQuery] int size)
         {
             _logger.LogInformation("ChatController: GetFilteredMessages.");
