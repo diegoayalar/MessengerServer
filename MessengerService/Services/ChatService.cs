@@ -57,9 +57,6 @@ namespace MessengerService.Services
                 foreach (var participant in newChat.UsersIDs)
                 {
                     var connections = await _userConnectionRepository.GetAllAsync();
-                    //var filteredChats = connections
-                    //    .Where(con => con.UserId != null && con.UserId.Contains(participant))
-                    //    .Select(con => con);
 
                     foreach (var connection in connections)
                     {
