@@ -1,6 +1,7 @@
 ﻿using MessengerDomain.Entities;
 using MessengerService.DTO;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -19,7 +20,9 @@ namespace MessengerService.Util.Mapper
                 Users = newChat.UsersIDs,
                 Description = newChat.Description,
                 IsGroup = newChat.IsGroup,
-                ChatName = newChat.ChatName
+                ChatName = newChat.ChatName,
+                AdminUsers = new List<string> { newChat.AdminUser}
+                
             };
         }
 

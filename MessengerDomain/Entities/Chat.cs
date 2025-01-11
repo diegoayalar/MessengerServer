@@ -7,6 +7,8 @@
 
         public required ICollection<string>? Users { get; set; }
 
+        public required ICollection<string> AdminUsers { get; set; }
+
         public string? ChatName { get; set; } = "New chat";
 
         public string? Description { get; set; } = string.Empty;

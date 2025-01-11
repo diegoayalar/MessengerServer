@@ -8,6 +8,7 @@ namespace MessengerService.DTO
 {
     public class NewChatRequestDTO
     {
+        public required string AdminUser { get; set; }
         public ICollection<string>? UsersIDs { get; set; }
 
         public string? ChatName { get; set; }
