@@ -81,7 +81,7 @@ namespace MessengerService.Services
         private async Task<string> RegisterFirebaseUserAsync(NewUserDTO newUser)
         {
             var userCredentials = await _firebaseAuthClient.CreateUserWithEmailAndPasswordAsync(newUser.Email, newUser.Password);
-            await AddNewUserToDBAsync(newUser);
+            await AddNewUserToDBAsync(newUser,userCredentials.User.Uid);
             return await userCredentials.User.GetIdTokenAsync();
         }
 
@@ -103,15 +103,17 @@ namespace MessengerService.Services
             return existingUser != null ? $"A user with email {existingUser.Email} already exists." : null;
         }
 
-        private async Task AddNewUserToDBAsync(NewUserDTO newUser)
+        private async Task AddNewUserToDBAsync(NewUserDTO newUser, string userID)
         {
             var hashedPassword = PasswordHelper.HashPassword(newUser.Password);
             newUser.Password = hashedPassword;
 
             var user = UserMapper.NewUserToUser(newUser);
-            var insertedUser = await _userService.InsertUserAsync(user);
-            user.Id = insertedUser.Key;
-            await _userService.UpdateUserAsync(user);
+            user.Id = userID;
+            //var insertedUser = await _userService.InsertUserAsync(user);
+            await _userService.InsertUserAsync(user);
+            //user.Id = insertedUser.Key;
+            //await _userService.UpdateUserAsync(user);
         }
     }
 }
