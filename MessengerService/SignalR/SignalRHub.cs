@@ -4,20 +4,21 @@ using MessengerPersistency.IRepository;
 using MessengerService.DTO;
 using MessengerService.IServices;
 using MessengerService.Util;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace MessengerService.SignalR
 {
+    [Authorize]
     public class SignalRHub: Hub
     {
-        private List<string> listStudent;
-
         private readonly IChatService _chatService;
         private readonly IGenericRepository<UserConnection> _ConnectionRepository;
         private readonly ILogger<SignalRHub> _logger;
@@ -47,8 +48,8 @@ namespace MessengerService.SignalR
         {
             //Se optiene el id del usuario por parametro
             //Esto se puede reemplazar por el TOKEN
-            var userID = Context.GetHttpContext()?.Request.Query["userId"];
-
+            //var userID = GetUserIdFromToken();
+            var userId = Context.User?.FindFirst("user_id")?.Value;
 
             Console.WriteLine("El dispositivo del usuario tiene esta ID:");
             Console.WriteLine(Context.ConnectionId);
@@ -56,7 +57,7 @@ namespace MessengerService.SignalR
             var connection = new UserConnection
             {
                 id = Guid.NewGuid().ToString(),
-                UserId = userID,
+                UserId = userId,
                 ConnectionId = Context.ConnectionId
             };
 
@@ -66,7 +67,7 @@ namespace MessengerService.SignalR
 
             //Se filtran todos los chats en los que pertenece el usuario.
             var userChats = chats
-                .Where(chat => chat.Users != null && chat.Users.Contains(userID))
+                .Where(chat => chat.Users != null && chat.Users.Contains(userId))
                 .Select(chat => chat)
                 .ToList();
 
@@ -81,6 +82,7 @@ namespace MessengerService.SignalR
             await base.OnConnectedAsync();
             Console.WriteLine($"New connection: {Context.ConnectionId}");
         }
+
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
             var connection = await _ConnectionRepository.GetByFieldAsync("ConnectionId",Context.ConnectionId);
@@ -94,4 +96,5 @@ namespace MessengerService.SignalR
             Console.WriteLine($"Connection lost: {Context.ConnectionId}");
         }
     }
+
 }
