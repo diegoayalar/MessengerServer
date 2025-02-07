@@ -14,7 +14,7 @@ namespace MessengerServer.Controllers
             _authService = authService;
         }
 
-        [HttpPost]
+        [HttpPost("signup")]
         public async Task<IActionResult> RegisterUser([FromBody] NewUserDTO newUser)
         {
             var (success, response) = await _authService.RegisterUserAsync(newUser);

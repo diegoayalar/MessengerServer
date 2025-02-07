@@ -9,9 +9,9 @@ namespace MessengerService.Services
     public class AuthService : IAuthService
     {
         private readonly IUserService _userService;
-        private readonly FirebaseAuthClient _firebaseAuthClient;
+        private readonly IFirebaseAuthClient _firebaseAuthClient;
 
-        public AuthService(IUserService userService, FirebaseAuthClient firebaseAuthClient)
+        public AuthService(IUserService userService, IFirebaseAuthClient firebaseAuthClient)
         {
             _userService = userService;
             _firebaseAuthClient = firebaseAuthClient;
@@ -22,10 +22,24 @@ namespace MessengerService.Services
             var validation = AuthValidator.ValidateNewUser(newUser);
             if (!validation.IsValid) return (false, validation.Message);
 
-            var userExistenceMessage = await CheckIfUserExistsAsync(newUser.Email);
-            if (userExistenceMessage != null) return (false, userExistenceMessage);
+            try
+            {
+                var token = await RegisterFirebaseUserAsync(newUser);
 
-            return (true, await RegisterFirebaseUserAsync(newUser));
+                return (true, token);
+            }
+            catch (FirebaseAuthHttpException ex) when (ex.Reason == AuthErrorReason.EmailExists)
+            {
+                return (false, "The email is already registered. Please use a different email.");
+            }
+            catch (FirebaseAuthHttpException ex)
+            {
+                return (false, $"Firebase error: {ex.Reason}");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"An unexpected error occurred: {ex.Message}");
+            }
         }
 
         public async Task<(bool Success, string? Token)> LoginAsync(LoginUserDTO loginUser)
@@ -81,7 +95,7 @@ namespace MessengerService.Services
         private async Task<string> RegisterFirebaseUserAsync(NewUserDTO newUser)
         {
             var userCredentials = await _firebaseAuthClient.CreateUserWithEmailAndPasswordAsync(newUser.Email, newUser.Password);
-            await AddNewUserToDBAsync(newUser,userCredentials.User.Uid);
+            await AddNewUserToDBAsync(newUser, userCredentials.User.Uid);
             return await userCredentials.User.GetIdTokenAsync();
         }
 
@@ -103,17 +117,14 @@ namespace MessengerService.Services
             return existingUser != null ? $"A user with email {existingUser.Email} already exists." : null;
         }
 
-        private async Task AddNewUserToDBAsync(NewUserDTO newUser, string userID)
+        private async Task AddNewUserToDBAsync(NewUserDTO newUser, string userId)
         {
             var hashedPassword = PasswordHelper.HashPassword(newUser.Password);
             newUser.Password = hashedPassword;
 
             var user = UserMapper.NewUserToUser(newUser);
-            user.Id = userID;
-            //var insertedUser = await _userService.InsertUserAsync(user);
+            user.Id = userId;
             await _userService.InsertUserAsync(user);
-            //user.Id = insertedUser.Key;
-            //await _userService.UpdateUserAsync(user);
         }
     }
 }

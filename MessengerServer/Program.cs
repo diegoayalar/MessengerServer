@@ -79,7 +79,7 @@ builder.Services.AddScoped<FirebaseStorageService>();
 var apiKey = firebaseConfig["ApiKey"];
 var authDomain = firebaseConfig["AuthDomain"];
 
-builder.Services.AddSingleton<FirebaseAuthClient>(firebaseAuth =>
+builder.Services.AddSingleton<IFirebaseAuthClient>(firebaseAuth =>
 {
     return new FirebaseAuthClient(new FirebaseAuthConfig {
         ApiKey = apiKey,
