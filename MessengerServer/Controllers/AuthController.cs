@@ -63,7 +63,7 @@ namespace MessengerServer.Controllers
         [HttpPost("logout")]
         public IActionResult Logout()
         {
-            _authService.SignOutUser();
+            Response.Cookies.Delete("AuthToken");
             return Ok("User signed out successfully.");
         }
 
