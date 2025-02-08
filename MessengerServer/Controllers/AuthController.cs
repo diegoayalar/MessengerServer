@@ -68,16 +68,19 @@ namespace MessengerServer.Controllers
         }
 
         [HttpPost("validate-token")]
-        public async Task<IActionResult> ValidateToken([FromBody] string token)
+        public async Task<IActionResult> ValidateToken()
         {
-            var (isValid, userIdOrMessage) = await _authService.ValidateTokenAsync(token);
-
-            if (!isValid)
+            if (!Request.Cookies.TryGetValue("AuthToken", out var token))
             {
-                return BadRequest(new { Error = userIdOrMessage });
+                return BadRequest(new { Error = "No authentication token found." });
             }
 
-            return Ok(new { UserId = userIdOrMessage });
+            var (isValid, message) = await _authService.ValidateTokenAsync(token);
+
+            if (!isValid)
+                return BadRequest(new { Error = message });
+
+            return Ok("Token valid");
         }
 
         [HttpDelete("delete-account")]
