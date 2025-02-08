@@ -59,12 +59,12 @@ namespace MessengerService.Services
             _firebaseAuthClient.SignOut();
         }
 
-        public async Task<(bool IsValid, string UserId)> ValidateTokenAsync(string token)
+        public async Task<(bool IsValid, string? Message)> ValidateTokenAsync(string token)
         {
             try
             {
                 var decodedToken = await FirebaseAdmin.Auth.FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(token);
-                return (true, decodedToken.Uid);
+                return (true, null);
             }
             catch (FirebaseAuthException ex)
             {

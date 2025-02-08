@@ -24,7 +24,17 @@ namespace MessengerServer.Controllers
                 return BadRequest(response);
             }
 
-            return Ok(new { Token = response });
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,  // Prevents client-side access
+                Secure = false,    // Requires HTTPS
+                SameSite = SameSiteMode.Strict, // Prevents CSRF attacks
+                Expires = DateTime.UtcNow.AddDays(7)
+            };
+
+            Response.Cookies.Append("AuthToken", response, cookieOptions);
+
+            return Ok("Register successful.");
         }
 
         [HttpPost("login")]
@@ -37,27 +47,40 @@ namespace MessengerServer.Controllers
                 return BadRequest(response);
             }
 
-            return Ok(new { Token = response });
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = false,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddDays(7)
+            };
+
+            Response.Cookies.Append("AuthToken", response, cookieOptions);
+
+            return Ok("Login successful.");
         }
 
         [HttpPost("logout")]
         public IActionResult Logout()
         {
-            _authService.SignOutUser();
+            Response.Cookies.Delete("AuthToken");
             return Ok("User signed out successfully.");
         }
 
         [HttpPost("validate-token")]
-        public async Task<IActionResult> ValidateToken([FromBody] string token)
+        public async Task<IActionResult> ValidateToken()
         {
-            var (isValid, userIdOrMessage) = await _authService.ValidateTokenAsync(token);
-
-            if (!isValid)
+            if (!Request.Cookies.TryGetValue("AuthToken", out var token))
             {
-                return BadRequest(new { Error = userIdOrMessage });
+                return BadRequest(new { Error = "No authentication token found." });
             }
 
-            return Ok(new { UserId = userIdOrMessage });
+            var (isValid, message) = await _authService.ValidateTokenAsync(token);
+
+            if (!isValid)
+                return BadRequest(new { Error = message });
+
+            return Ok("Token valid");
         }
 
         [HttpDelete("delete-account")]
