@@ -70,17 +70,28 @@ namespace MessengerServer.Controllers
         [HttpPost("validate-token")]
         public async Task<IActionResult> ValidateToken()
         {
-            if (!Request.Cookies.TryGetValue("AuthToken", out var token))
+            try
             {
-                return BadRequest(new { Error = "No authentication token found." });
+                if (!Request.Cookies.TryGetValue("AuthToken", out var token))
+                {
+                    return BadRequest(new { Error = "No authentication token found." });
+                }
+
+                var (isValid, message) = await _authService.ValidateTokenAsync(token);
+
+                if (!isValid)
+                    return Unauthorized(new { Error = message });
+
+                return Ok("Token valid");
             }
-
-            var (isValid, message) = await _authService.ValidateTokenAsync(token);
-
-            if (!isValid)
-                return BadRequest(new { Error = message });
-
-            return Ok("Token valid");
+            catch (FirebaseAdmin.Auth.FirebaseAuthException ex)
+            {
+                return Unauthorized(new { Error = "Invalid or expired token.", Details = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Error = "An internal error occurred.", Details = ex.Message });
+            }
         }
 
         [HttpDelete("delete-account")]
