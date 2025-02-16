@@ -10,23 +10,15 @@ using Microsoft.Extensions.Logging;
 
 namespace MessengerService.Services
 {
-    public class ChatService : IChatService
+    public class ChatService(IChatRepository chatRepository, ILogger<ChatService> logger,
+        FirebaseStorageService firebaseStorageService, IHubContext<SignalRHub> hubContext,
+            IGenericRepository<UserConnection> genericRepository) : IChatService
     {
-        private readonly IGenericRepository<Chat> _chatRepository;
-        private readonly ILogger<ChatService> _logger;
-        private readonly FirebaseStorageService _firebaseStorageService;
-        private readonly IHubContext<SignalRHub> _hubContext;
-        private readonly IGenericRepository<UserConnection> _userConnectionRepository;
-        public ChatService(IGenericRepository<Chat> Repository, ILogger<ChatService> logger, FirebaseStorageService firebaseStorageService
-                , IHubContext<SignalRHub> hubContext,
-                IGenericRepository<UserConnection> genericRepository)
-        {
-            _chatRepository = Repository;
-            _logger = logger;
-            _firebaseStorageService = firebaseStorageService;
-            _hubContext = hubContext;
-            _userConnectionRepository = genericRepository;
-        }
+        private readonly IChatRepository _chatRepository = chatRepository;
+        private readonly ILogger<ChatService> _logger = logger;
+        private readonly FirebaseStorageService _firebaseStorageService = firebaseStorageService;
+        private readonly IHubContext<SignalRHub> _hubContext = hubContext;
+        private readonly IGenericRepository<UserConnection> _userConnectionRepository = genericRepository;
 
         public async Task InsertNewChat(NewChatRequestDTO newChat, Stream? profilePictureStream)
         {
@@ -48,7 +40,7 @@ namespace MessengerService.Services
                     await _firebaseStorageService.UploadFileAsync(profilePictureStream, newFileName);
 
                 }
-                
+
                 var chat = ChatMapper.NewChatRequestToChat(newChat, nameFile);
                 var response = await _chatRepository.InsertAsync(chat);
                 chat.Id = response.Key;
@@ -82,7 +74,7 @@ namespace MessengerService.Services
                 var newMessage = MessageMapper.NewMessageDTOToMessage(message);
                 newMessage._Id = newMessageId;
 
-                newMessage.UnrecivedUsers = new List<string>(); 
+                newMessage.UnrecivedUsers = new List<string>();
                 newMessage.UneadUsers = new List<string>();
                 newMessage.ReadUsers = new List<string>();
                 newMessage.RecivedUsers = new List<string>();
@@ -92,7 +84,7 @@ namespace MessengerService.Services
 
                 newMessage.UneadUsers.Add(newMessage.Sender);
                 newMessage.UnrecivedUsers.Add(newMessage.Sender);
-                await _chatRepository.UpdateOrAddChildItem(chatId,"Messages", newMessageId, newMessage);
+                await _chatRepository.UpdateOrAddChildItem(chatId, "Messages", newMessageId, newMessage);
                 _logger.LogInformation(" Se ha agregado correctamente el mensaje.");
 
             }
@@ -102,11 +94,11 @@ namespace MessengerService.Services
             }
         }
 
-        public async Task<IEnumerable<Message>> GetFilteredMessages(string parentID, int size) 
+        public async Task<IEnumerable<Message>> GetFilteredMessages(string parentID, int size)
         {
             _logger.LogInformation("Iniciando la busqueda y retorno de los mensajes en el chat.");
 
-            try 
+            try
             {
                 return await _chatRepository.getFiltredItems<Message>(parentID, "Messages", size);
 
@@ -238,7 +230,7 @@ namespace MessengerService.Services
             }
         }
 
-        public async Task EditMessageFromChat(UpdateMessageDTO newChat, string chatId,string messageId)
+        public async Task EditMessageFromChat(UpdateMessageDTO newChat, string chatId, string messageId)
         {
             _logger.LogInformation("Iniciando la edición de un message.");
             try
@@ -299,13 +291,21 @@ namespace MessengerService.Services
             }
         }
 
+        public async Task<IEnumerable<Chat>> GetChatsByUserIdAsync(string userId)
+        {
+            return await _chatRepository.GetChatsByUserIdAsync(userId);
+        }
+
         public async Task<IEnumerable<Chat>> GetAllUsersAsync() => await _chatRepository.GetAllAsync();
-        public async Task<Chat> GetChatById(string id) {
-            try {
+        public async Task<Chat> GetChatById(string id)
+        {
+            try
+            {
                 _logger.LogInformation("Iniciando la busqueda de un chat.");
                 var chat = await _chatRepository.GetByIdAsync(id);
-                
-                if (chat == null) {
+
+                if (chat == null)
+                {
                     throw new ArgumentException("No se ha encontrado ningún chat, verifique la información.");
                 }
 

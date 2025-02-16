@@ -15,6 +15,7 @@ namespace MessengerService.IServices
         Task AddAdminUserToChat(string userSender, string userAdminID, string chatId);
         Task RemoveAdminUserToChat(string userSender, string userAdminID, string chatId);
         Task<IEnumerable<Chat>> GetAllChatsAsync();
+        Task<IEnumerable<Chat>> GetChatsByUserIdAsync(string userId);
         Task<Chat> GetChatById(string id);
         Task UpdateUserAsync(Chat chat);
         Task DeleteUserAsync(string id);

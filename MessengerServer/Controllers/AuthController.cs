@@ -19,10 +19,7 @@ namespace MessengerServer.Controllers
         {
             var (success, response) = await _authService.RegisterUserAsync(newUser);
 
-            if (!success)
-            {
-                return BadRequest(response);
-            }
+            if (!success) return BadRequest(response);
 
             var cookieOptions = new CookieOptions
             {
@@ -42,10 +39,7 @@ namespace MessengerServer.Controllers
         {
             var (success, response) = await _authService.LoginAsync(loginUser);
 
-            if (!success)
-            {
-                return BadRequest(response);
-            }
+            if (!success) return BadRequest(response);
 
             var cookieOptions = new CookieOptions
             {
@@ -73,14 +67,11 @@ namespace MessengerServer.Controllers
             try
             {
                 if (!Request.Cookies.TryGetValue("AuthToken", out var token))
-                {
                     return BadRequest(new { Error = "No authentication token found." });
-                }
 
                 var (isValid, message) = await _authService.ValidateTokenAsync(token);
 
-                if (!isValid)
-                    return Unauthorized(new { Error = message });
+                if (!isValid) return Unauthorized(new { Error = message });
 
                 return Ok("Token valid");
             }
@@ -99,10 +90,7 @@ namespace MessengerServer.Controllers
         {
             var (success, message) = await _authService.DeleteAccountAsync(userToDelete);
 
-            if (!success)
-            {
-                return BadRequest(message);
-            }
+            if (!success) return BadRequest(message);
 
             return Ok("User account deleted successfully.");
         }
