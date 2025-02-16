@@ -291,6 +291,11 @@ namespace MessengerService.Services
             }
         }
 
+        public async Task<IEnumerable<Chat>> GetChatsByUserIdAsync(string userId)
+        {
+            return await _chatRepository.GetChatsByUserIdAsync(userId);
+        }
+
         public async Task<IEnumerable<Chat>> GetAllUsersAsync() => await _chatRepository.GetAllAsync();
         public async Task<Chat> GetChatById(string id)
         {

@@ -45,7 +45,7 @@ namespace MessengerServer.Controllers
         }
 
         [HttpPatch("{chatId}/remove-admin/{adminId}")]
-        public async Task<IActionResult> RemoveAdminToChat([FromBody] string sender,string adminId, string chatId)
+        public async Task<IActionResult> RemoveAdminToChat([FromBody] string sender, string adminId, string chatId)
         {
             _logger.LogInformation("ChatController: RemoveAdminToChat.");
             await _chatService.RemoveAdminUserToChat(sender, adminId, chatId);
@@ -53,7 +53,8 @@ namespace MessengerServer.Controllers
         }
 
         [HttpPatch("edit-chat/{id}")]
-        public async Task<IActionResult> EditChat(string id, [FromForm] UpdateChatRequest newInfoChat, IFormFile? groupPicFile) {
+        public async Task<IActionResult> EditChat(string id, [FromForm] UpdateChatRequest newInfoChat, IFormFile? groupPicFile)
+        {
             _logger.LogInformation("ChatController: EditChat.");
             Stream? fileStream = groupPicFile != null ? groupPicFile.OpenReadStream() : null;
             await _chatService.EditChat(newInfoChat, id, fileStream);
@@ -61,7 +62,7 @@ namespace MessengerServer.Controllers
         }
 
         [HttpPatch("edit-message/chat/{chatId}/messages/{messageID}")]
-        public async Task<IActionResult> EditMessageFromChat(string chatId, string messageID ,[FromBody] UpdateMessageDTO newInfoChat)
+        public async Task<IActionResult> EditMessageFromChat(string chatId, string messageID, [FromBody] UpdateMessageDTO newInfoChat)
         {
             _logger.LogInformation("ChatController: EditChat.");
             await _chatService.EditMessageFromChat(newInfoChat, chatId, messageID);
@@ -85,9 +86,35 @@ namespace MessengerServer.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> get() { 
+        public async Task<IActionResult> get()
+        {
             return Ok(await _chatService.GetAllChatsAsync());
         }
+
+        //[HttpGet("by-user")]
+        //public async Task<IActionResult> GetChatsByUserId()
+        //{
+        //    try
+        //    {
+        //        if (!Request.Cookies.TryGetValue("AuthToken", out var token))
+        //            return BadRequest(new { Error = "No authentication token found." });
+
+        //        var decodedToken = await FirebaseAuth.DefaultInstance.VerifyIdTokenAsync(token);
+        //        var userId = decodedToken.Uid;
+
+        //        var chats = await _chatService.GetChatsByUserIdAsync(userId);
+
+        //        return Ok(chats);
+        //    }
+        //    catch (FirebaseAdmin.Auth.FirebaseAuthException ex)
+        //    {
+        //        return Unauthorized(new { Error = "Invalid or expired token.", Details = ex.Message });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, new { Error = "An internal error occurred.", Details = ex.Message });
+        //    }
+        //}
 
         [HttpGet("{chatId}")]
         public async Task<IActionResult> getChatByID(string chatId)
@@ -105,7 +132,7 @@ namespace MessengerServer.Controllers
         public async Task<IActionResult> GetFilteredMessages(string chatID, [FromQuery] int size)
         {
             _logger.LogInformation("ChatController: GetFilteredMessages.");
-            return Ok(await _chatService.GetFilteredMessages(chatID,size));
+            return Ok(await _chatService.GetFilteredMessages(chatID, size));
         }
     }
 }
