@@ -35,10 +35,10 @@ builder.Services.AddScoped<IGenericRepository<MessengerDomain.Entities.User>>(pr
     return new GenericRepository<MessengerDomain.Entities.User>(firebaseClient, "user");
 });
 
-builder.Services.AddScoped<IGenericRepository<Chat>>(provider =>
+builder.Services.AddScoped<IChatRepository>(provider =>
 {
     var firebaseClient = provider.GetRequiredService<FirebaseClient>();
-    return new GenericRepository<Chat>(firebaseClient, "chats");
+    return new ChatRepository(firebaseClient);
 });
 
 builder.Services.AddScoped<IGenericRepository<UserConnection>>(provider =>
