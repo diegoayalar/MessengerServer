@@ -11,9 +11,9 @@ using MessengerService.IServices;
 using MessengerService.Services;
 using MessengerService.SignalR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls("http://localhost:7279");
@@ -113,19 +113,25 @@ builder.Services.AddSwaggerGen(options => {
     });
 });
 
+var AuthConfig = builder.Configuration.GetSection("JWTSettings");
+var secretKey = Encoding.UTF8.GetBytes(AuthConfig["SecretKey"]);
+var authority = AuthConfig["Authority"];
+var issuer = AuthConfig["Authority"];
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {
-    options.Authority = $"https://securetoken.google.com/{projectId}";
+    options.Authority = $"{authority}";
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
-        ValidIssuer = $"https://securetoken.google.com/{projectId}",
+        ValidIssuer = $"{issuer}",
 
         ValidateAudience = true,
         ValidAudience = $"{projectId}",
 
         ValidateLifetime = true,
-        ValidateIssuerSigningKey = true
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(secretKey)
     };
 
     // Habilitar SignalR para leer tokens desde la QueryString
