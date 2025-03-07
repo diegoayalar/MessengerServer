@@ -50,6 +50,7 @@ builder.Services.AddScoped<IGenericRepository<UserConnection>>(provider =>
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddTransient<ITokenService, TokenService>();
 
 // Configuraci�n de Firebase
 var firebaseConfig = builder.Configuration.GetSection("Firebase");
