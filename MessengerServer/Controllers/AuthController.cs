@@ -1,64 +1,60 @@
-﻿using MessengerService.DTO;
+﻿using Firebase.Database;
+using MessengerDomain.Entities;
+using MessengerService.DTO;
 using MessengerService.IServices;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MessengerServer.Controllers
 {
     [Route("api/[controller]")]
-    public class AuthController : Controller
+    public class AuthController(
+        IAuthService authService,
+        ITokenService tokenService,
+        IConfiguration config) : Controller
     {
-        private readonly IAuthService _authService;
-
-        public AuthController(IAuthService authService)
-        {
-            _authService = authService;
-        }
+        private readonly IAuthService _authService = authService;
+        private readonly ITokenService _tokenService = tokenService;
+        private readonly IConfiguration _config = config;
 
         [HttpPost("signup")]
         public async Task<IActionResult> RegisterUser([FromBody] NewUserDTO newUser)
         {
-            var (success, response) = await _authService.RegisterUserAsync(newUser);
-
-            if (!success) return BadRequest(response);
-
-            var cookieOptions = new CookieOptions
-            {
-                HttpOnly = true,  // Prevents client-side access
-                Secure = false,    // Requires HTTPS
-                SameSite = SameSiteMode.Strict, // Prevents CSRF attacks
-                Expires = DateTime.UtcNow.AddDays(7)
-            };
-
-            Response.Cookies.Append("AuthToken", response, cookieOptions);
-
-            return Ok("Register successful.");
+            var (success, Message) = await _authService.RegisterUserAsync(newUser);
+            return success ? await GenerateTokenResponseAsync(newUser.Email) : BadRequest(Message);
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<string>> Login([FromBody] LoginUserDTO loginUser)
+        public async Task<IActionResult> Login([FromBody] LoginUserDTO loginUser)
         {
             var (success, response) = await _authService.LoginAsync(loginUser);
-
-            if (!success) return BadRequest(response);
-
-            var cookieOptions = new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = false,
-                SameSite = SameSiteMode.Strict,
-                Expires = DateTime.UtcNow.AddDays(7)
-            };
-
-            Response.Cookies.Append("AuthToken", response, cookieOptions);
-
-            return Ok("Login successful.");
+            return success ? await GenerateTokenResponseAsync(loginUser.Email) : BadRequest(response);
         }
 
         [HttpPost("logout")]
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
+            var refreshToken = Request.Cookies["AuthToken"];
+            var (success, response) = await _authService.DeleteRefreshTokenAsync(refreshToken);
+
+            if(!success)
+                return Unauthorized(response);
+
             Response.Cookies.Delete("AuthToken");
-            return Ok("User signed out successfully.");
+
+            return Ok(response);
+        }
+
+        [HttpPost("refresh-token")]
+        public async Task<IActionResult> RefreshToken()
+        {
+            var refreshToken = Request.Cookies["AuthToken"];
+
+            var (success, response) = await _authService.RefreshTokenAsync(refreshToken);
+
+            if (!success)
+                return Unauthorized(response);
+
+            return await GenerateTokenResponseAsync(response);
         }
 
         [HttpPost("validate-token")]
@@ -70,10 +66,7 @@ namespace MessengerServer.Controllers
                     return BadRequest(new { Error = "No authentication token found." });
 
                 var (isValid, message) = await _authService.ValidateTokenAsync(token);
-
-                if (!isValid) return Unauthorized(new { Error = message });
-
-                return Ok("Token valid");
+                return isValid ? Ok("Token valid") : Unauthorized(new { Error = message });
             }
             catch (FirebaseAdmin.Auth.FirebaseAuthException ex)
             {
@@ -89,10 +82,8 @@ namespace MessengerServer.Controllers
         public async Task<IActionResult> DeleteAccount([FromBody] LoginUserDTO userToDelete)
         {
             var (success, message) = await _authService.DeleteAccountAsync(userToDelete);
-
-            if (!success) return BadRequest(message);
-
-            return Ok("User account deleted successfully.");
+            await Logout();
+            return success ? Ok("User account deleted successfully.") : BadRequest(message);
         }
 
         [HttpPost("reset-password")]
@@ -100,6 +91,32 @@ namespace MessengerServer.Controllers
         {
             await _authService.SendPasswordResetEmailAsync(email);
             return Ok("Password reset email sent.");
+        }
+
+        private async Task<IActionResult> GenerateTokenResponseAsync(string email)
+        {
+            var refreshToken = _tokenService.GenerateRefreshToken();
+            var (success, Message) = await _authService.SaveRefreshTokenAsync(email, refreshToken);
+
+            if (!success) return BadRequest(Message);
+
+            var accessToken = _tokenService.GenerateAccessToken(email);
+
+            SetRefreshTokenCookie(refreshToken.Token);
+            return Ok(accessToken);
+        }
+
+        private void SetRefreshTokenCookie(string refreshToken)
+        {
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.Now.AddDays(Convert.ToDouble(_config["JwtSettings:AccessTokenExpiration"]))
+            };
+
+            Response.Cookies.Append("AuthToken", refreshToken, cookieOptions);
         }
     }
 }
