@@ -23,20 +23,22 @@ namespace MessengerService.Services
         }
 
         public async Task UpdateUserAsync(User user) => await _userRepository.UpdateAsync(user);
+
         public async Task<IEnumerable<User>> GetAllUsersAsync() => await _userRepository.GetAllAsync();
-        public async Task<User?> GetUserByIdAsync(string id) => await _userRepository.GetByIdAsync(id);
+
+        public async Task<User?> GetUserByIdAsync(string id) => await _userRepository.GetByFieldAsync("Id", id);
+
         public async Task<User?> GetUserByEmailAsync(string email) => await _userRepository.GetByFieldAsync("Email", email);
 
         public async Task<(bool Success, string? ErrorMessage)> UpdateUserFieldAsync(string id, Action<User> updateAction)
         {
             var user = await GetUserByIdAsync(id);
             if (user == null)
-            {
                 return (false, "User not found.");
-            }
 
             updateAction(user);
             await UpdateUserAsync(user);
+
             return (true, null);
         }
 
