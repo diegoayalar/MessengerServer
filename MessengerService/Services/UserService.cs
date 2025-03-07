@@ -83,7 +83,6 @@ namespace MessengerService.Services
         private void DeleteUserCredentials(User user)
         {
             user.Email = null;
-            user.Password = null;
             user.Phone = null;
         }
     }
