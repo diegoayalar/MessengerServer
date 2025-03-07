@@ -1,32 +1,29 @@
 ﻿using Firebase.Auth;
+using MessengerDomain.Entities;
 using MessengerService.DTO;
 using MessengerService.IServices;
-using MessengerService.Util;
+using MessengerService.Util.Mapper;
 using MessengerService.Util.Validator;
 
 namespace MessengerService.Services
 {
-    public class AuthService : IAuthService
+    public class AuthService(IUserService userService,
+        IFirebaseAuthClient firebaseAuthClient) : IAuthService
     {
-        private readonly IUserService _userService;
-        private readonly IFirebaseAuthClient _firebaseAuthClient;
+        private readonly IUserService _userService = userService;
+        private readonly IFirebaseAuthClient _firebaseAuthClient = firebaseAuthClient;
 
-        public AuthService(IUserService userService, IFirebaseAuthClient firebaseAuthClient)
+        public async Task<(bool Success, string? Message)> RegisterUserAsync(NewUserDTO newUser)
         {
-            _userService = userService;
-            _firebaseAuthClient = firebaseAuthClient;
-        }
-
-        public async Task<(bool Success, string? Token)> RegisterUserAsync(NewUserDTO newUser)
-        {
-            var validation = AuthValidator.ValidateNewUser(newUser);
-            if (!validation.IsValid) return (false, validation.Message);
+            var (IsValid, Message) = AuthValidator.ValidateNewUser(newUser);
+            if (!IsValid)
+                return (false, Message);
 
             try
             {
-                var token = await RegisterFirebaseUserAsync(newUser);
+                await RegisterFirebaseUserAsync(newUser);
 
-                return (true, token);
+                return (true, null);
             }
             catch (FirebaseAuthHttpException ex) when (ex.Reason == AuthErrorReason.EmailExists)
             {
@@ -46,17 +43,63 @@ namespace MessengerService.Services
         {
             var userCredentials = await SignInWithEmailAndPasswordAsync(loginUser.Email, loginUser.Password);
             if (userCredentials == null)
-            {
                 return (false, "Invalid email or password.");
-            }
 
             var token = await userCredentials.User.GetIdTokenAsync();
+
             return (true, token);
         }
 
         public void SignOutUser()
         {
             _firebaseAuthClient.SignOut();
+        }
+
+        public async Task<(bool Success, string? Message)> RefreshTokenAsync(string refreshToken)
+        {
+            if (string.IsNullOrEmpty(refreshToken))
+                return (false, "Refresh token is missing.");
+
+            var user = await _userService.GetUserByRefreshTokenAsync(refreshToken);
+            if (user == null)
+                return (false, "User not found.");
+
+            if (user.RefreshToken == null)
+                return (false, "Refresh token is missing.");
+
+            if (user.RefreshToken.Expiry <= DateTime.Now)
+                return (false, "Refresh token has expired.");
+
+            return (true, user.Email);
+        }
+
+        public async Task<(bool Success, string? Message)> SaveRefreshTokenAsync(string email, RefreshToken refreshToken)
+        {
+            var user = await _userService.GetUserByEmailAsync(email);
+
+            if (user == null)
+                return (false, "User not found");
+
+            await _userService.UpdateUserFieldAsync(
+                user.Id, user =>user.RefreshToken = refreshToken);
+
+            return (true, null);
+        }
+
+        public async Task<(bool Success, string Message)> DeleteRefreshTokenAsync(string refreshToken)
+        {
+            if (string.IsNullOrEmpty(refreshToken))
+                return (false, "Refresh token is missing.");
+
+            var user = await _userService.GetUserByRefreshTokenAsync(refreshToken);
+
+            if (user == null)
+                return (false, "User not found");
+
+            await _userService.UpdateUserFieldAsync(
+                user.Id, user => user.RefreshToken = null);
+
+            return (true, "User signed out successfully.");
         }
 
         public async Task<(bool IsValid, string? Message)> ValidateTokenAsync(string token)
@@ -75,15 +118,18 @@ namespace MessengerService.Services
         public async Task<(bool Success, string? Message)> DeleteAccountAsync(LoginUserDTO userToDelete)
         {
             var user = await _userService.GetUserByEmailAsync(userToDelete.Email);
-            if (user == null) return (false, "User not found.");
+            if (user == null) 
+                return (false, "User not found.");
 
             var userCredentials = await SignInWithEmailAndPasswordAsync(user.Email, userToDelete.Password);
-            if (userCredentials == null) return (false, "Invalid email or password.");
+            if (userCredentials == null) 
+                return (false, "Invalid email or password.");
 
             await userCredentials.User.DeleteAsync();
             await _userService.UpdateUserFieldAsync(user.Id, u => u.IsActive = false);
             await _userService.DeleteUserDataAsync(user);
             SignOutUser();
+
             return (true, null);
         }
 
@@ -92,11 +138,11 @@ namespace MessengerService.Services
             await _firebaseAuthClient.ResetEmailPasswordAsync(email);
         }
 
-        private async Task<string> RegisterFirebaseUserAsync(NewUserDTO newUser)
+        private async Task RegisterFirebaseUserAsync(NewUserDTO newUser)
         {
             var userCredentials = await _firebaseAuthClient.CreateUserWithEmailAndPasswordAsync(newUser.Email, newUser.Password);
+
             await AddNewUserToDBAsync(newUser, userCredentials.User.Uid);
-            return await userCredentials.User.GetIdTokenAsync();
         }
 
         private async Task<UserCredential?> SignInWithEmailAndPasswordAsync(string email, string password)
@@ -111,20 +157,12 @@ namespace MessengerService.Services
             }
         }
 
-        private async Task<string?> CheckIfUserExistsAsync(string email)
-        {
-            var existingUser = await _userService.GetUserByEmailAsync(email);
-            return existingUser != null ? $"A user with email {existingUser.Email} already exists." : null;
-        }
-
         private async Task AddNewUserToDBAsync(NewUserDTO newUser, string userId)
         {
-            var hashedPassword = PasswordHelper.HashPassword(newUser.Password);
-            newUser.Password = hashedPassword;
-
             var user = UserMapper.NewUserToUser(newUser);
             user.Id = userId;
-            await _userService.InsertUserAsync(user);
+
+            var insertedUser = await _userService.InsertUserAsync(user);
         }
     }
 }
