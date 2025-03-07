@@ -43,8 +43,9 @@ namespace MessengerPersistency.Repository
             return result.FirstOrDefault()?.Object;
         }
 
-        public async Task<T> GetChildItem<T>(string parentID, string childCollection, string childID) { 
-            
+        public async Task<T> GetChildItem<T>(string parentID, string childCollection, string childID)
+        {
+
             var result = await _firebaseClient
                 .Child(_collectionName)
                 .Child(parentID)
@@ -55,7 +56,8 @@ namespace MessengerPersistency.Repository
             return result;
         }
 
-        public async Task<IEnumerable<T>> getFiltredItems<T>(string parentID, string childCollection, int size) {
+        public async Task<IEnumerable<T>> getFiltredItems<T>(string parentID, string childCollection, int size)
+        {
 
             var listItems = await _firebaseClient
                 .Child(_collectionName)
@@ -65,10 +67,11 @@ namespace MessengerPersistency.Repository
                 .LimitToLast(size)
                 .OnceAsync<T>();
 
-            
+
             return listItems.Select(item => item.Object);
         }
-        public async Task UpdateOrAddChildItem(string parentID, string childCollection, string childID, Object entity) {
+        public async Task UpdateOrAddChildItem(string parentID, string childCollection, string childID, Object entity)
+        {
 
             await _firebaseClient
                 .Child(_collectionName)
@@ -80,11 +83,19 @@ namespace MessengerPersistency.Repository
 
         public async Task UpdateAsync(T entity)
         {
-            var id = (entity.GetType().GetProperty("Id")?.GetValue(entity, null) as string);
-            if (id != null)
-            {
-                await _firebaseClient.Child(_collectionName).Child(id).PutAsync(entity);
-            }
+            var id = entity.GetType().GetProperty("Id")
+                .GetValue(entity, null) as string;
+
+            var documents = await _firebaseClient
+                .Child(_collectionName)
+                .OnceAsync<T>();
+
+            var document = documents.FirstOrDefault(d =>
+            typeof(T).GetProperty("Id")?.GetValue(d.Object)?.ToString() == id);
+
+            if (document != null)
+                await _firebaseClient.Child(_collectionName).Child(document.Key).PatchAsync(entity);
+
         }
 
         public async Task DeleteAsync(string id)
