@@ -10,6 +10,7 @@ namespace MessengerService.IServices
         Task<IEnumerable<User>> GetAllUsersAsync();
         Task<User?> GetUserByIdAsync(string id);
         Task<User?> GetUserByEmailAsync(string email);
+        Task<User?> GetUserByRefreshTokenAsync(string token);
         Task<(bool Success, string? ErrorMessage)> UpdateUserFieldAsync(string id, Action<User> updateAction);
         Task<(bool Success, string? ErrorMessage)> UpdateUserProfilePicAsync(string id, Stream profilePicStream);
         Task DeleteUserDataAsync(User user);
