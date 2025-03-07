@@ -30,6 +30,15 @@ namespace MessengerService.Services
 
         public async Task<User?> GetUserByEmailAsync(string email) => await _userRepository.GetByFieldAsync("Email", email);
 
+        public async Task<User?> GetUserByRefreshTokenAsync(string token)
+        {
+            var users = await _userRepository.GetAllAsync();
+
+            return users.FirstOrDefault(user =>
+                user.RefreshToken != null &&
+                user.RefreshToken.Token == token);
+        }
+
         public async Task<(bool Success, string? ErrorMessage)> UpdateUserFieldAsync(string id, Action<User> updateAction)
         {
             var user = await GetUserByIdAsync(id);
